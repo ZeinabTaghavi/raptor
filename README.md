@@ -198,6 +198,16 @@ That QASPER config is set up to avoid OpenAI dependencies by default:
 - the launcher defaults `CUDA_VISIBLE_DEVICES=0,1`
 - `vllm` tensor parallelism defaults to the number of visible GPUs and is capped to that count if a YAML requests more
 
+If you do not have admin access and `vllm` fails on Triton or missing `Python.h`, use the `transformers` fallback config instead:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1,2,3 python scripts/run_raptor_experiment.py \
+  --dataset-name qasper \
+  --default-yaml configs/raptor/qasper_retrieval_ablation_transformers.yaml
+```
+
+That fallback keeps the same Qwen model and Contriever embeddings, but avoids the `vllm`/Triton compile path entirely. You can also use fewer GPUs by changing `CUDA_VISIBLE_DEVICES`; the default launcher still uses `0,1` when you do not override it.
+
 The runner also supports `transformers`-backed local generation models if you prefer not to use `vllm`.
 
 

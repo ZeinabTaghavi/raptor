@@ -53,7 +53,17 @@ def generate_with_vllm(
 
     llm = _VLLM_CACHE.get(cache_key)
     if llm is None:
-        llm = LLM(model=model_name, **engine_kwargs)
+        try:
+            llm = LLM(model=model_name, **engine_kwargs)
+        except Exception as exc:
+            message = str(exc)
+            if "Python.h" in message or "No such file or directory" in message:
+                raise RuntimeError(
+                    "vLLM/Triton failed to compile because Python development headers are missing. "
+                    "Without admin access, the easiest workaround is to switch RAPTOR to the "
+                    "'transformers' backend for Qwen instead of 'vllm'."
+                ) from exc
+            raise
         _VLLM_CACHE[cache_key] = llm
 
     sampling_params = SamplingParams(
@@ -85,6 +95,10 @@ def generate_with_transformers(
         ) from exc
 
     pipeline_kwargs = dict(pipeline_kwargs or {})
+    torch_dtype = pipeline_kwargs.get("torch_dtype", "auto")
+    if isinstance(torch_dtype, str) and torch_dtype != "auto":
+        torch_dtype = getattr(torch, torch_dtype, torch_dtype)
+    pipeline_kwargs["torch_dtype"] = torch_dtype
     pipeline_kwargs.setdefault("device_map", "auto")
     pipeline_kwargs.setdefault("torch_dtype", "auto")
     pipeline_kwargs.setdefault("trust_remote_code", True)

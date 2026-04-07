@@ -1,5 +1,5 @@
 raptor_run:
-  run_name: qasper_retrieval_ablation_raptor
+  run_name: qasper_retrieval_ablation_raptor_transformers
   output_root: raptor_runs
   dataset:
     split: test
@@ -16,20 +16,18 @@ raptor_run:
       normalize: true
       trust_remote_code: true
     summarization:
-      provider: vllm
+      provider: transformers
       model: Qwen/Qwen3-30B-A3B-Instruct-2507
-      tensor_parallel_size: 2
-      dtype: bfloat16
-      gpu_memory_utilization: 0.9
+      device_map: auto
+      torch_dtype: bfloat16
       trust_remote_code: true
       temperature: 0.0
       top_p: 1.0
     qa:
-      provider: vllm
+      provider: transformers
       model: Qwen/Qwen3-30B-A3B-Instruct-2507
-      tensor_parallel_size: 2
-      dtype: bfloat16
-      gpu_memory_utilization: 0.9
+      device_map: auto
+      torch_dtype: bfloat16
       trust_remote_code: true
       temperature: 0.6
       top_p: 0.95
