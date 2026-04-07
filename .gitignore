@@ -18,6 +18,9 @@ __pycache__/
 *.pt
 gpt*.txt
 *.env
+.raptorenv/
+.venv/
+venv/
 local/
 local_*
 build/
