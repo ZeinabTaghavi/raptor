@@ -40,11 +40,24 @@ dataset_loader_settings:
     max_questions_per_doc: null
   per_document_retrieval: true
 llm_model: &id001
-  provider: openai
-  model: gpt-3.5-turbo
+  provider: vllm
+  model: Qwen/Qwen3-30B-A3B-Instruct-2507
+  tensor_parallel_size: 4
+  dtype: bfloat16
+  gpu_memory_utilization: 0.9
+  trust_remote_code: true
+  temperature: 0.6
+  top_p: 0.95
+  stop:
+  - '[END_JSON]'
+  - <|im_end|>
+  - <|endoftext|>
 embedding_model:
-  provider: openai
-  model: text-embedding-ada-002
+  provider: contriever
+  model: facebook/contriever
+  pooling: mean
+  normalize: true
+  trust_remote_code: true
 tree_builder_settings:
   builder_type: cluster
   max_tokens: 200
@@ -56,8 +69,14 @@ tree_builder_settings:
   reduction_dimension: 10
   clustering_params: {}
   summarization_model:
-    provider: openai
-    model: gpt-3.5-turbo
+    provider: vllm
+    model: Qwen/Qwen3-30B-A3B-Instruct-2507
+    tensor_parallel_size: 4
+    dtype: bfloat16
+    gpu_memory_utilization: 0.9
+    trust_remote_code: true
+    temperature: 0.0
+    top_p: 1.0
 retrieval_settings:
   start_layer: null
   num_layers: null
