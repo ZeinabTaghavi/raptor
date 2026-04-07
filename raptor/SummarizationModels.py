@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 from ._compat import retry, stop_after_attempt, wait_random_exponential
 from ._generation_backends import (generate_with_transformers,
-                                   generate_with_vllm)
+                                   generate_with_vllm, warm_vllm_engine)
 
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 
@@ -136,6 +136,9 @@ class VLLMSummarizationModel(BaseSummarizationModel):
         self.temperature = temperature
         self.top_p = top_p
         self.stop = stop
+
+    def warm_up(self):
+        warm_vllm_engine(model_name=self.model, engine_kwargs=self.engine_kwargs)
 
     def summarize(self, context, max_tokens=150, stop_sequence=None):
         prompt = (

@@ -1048,6 +1048,17 @@ def resolve_run_config(
             "bigainlco/loogle",
         }:
             normalized_loader_name = "loogle"
+        elif lowered_dataset_source in {
+            "narrativeqa",
+            "deepmind/narrativeqa",
+            "nqa",
+        }:
+            normalized_loader_name = "narrativeqa"
+        elif lowered_dataset_source in {
+            "quality",
+            "tasksource/quality",
+        }:
+            normalized_loader_name = "quality"
         elif lowered_dataset_source not in {"", "files"}:
             normalized_loader_name = lowered_dataset_source
 
@@ -1533,6 +1544,9 @@ def run_experiment(
 
         trees_by_doc_id[document.doc_id] = tree
         descendant_lookup_by_doc_id[document.doc_id] = descendant_lookup
+
+    if hasattr(qa_model, "warm_up"):
+        qa_model.warm_up()
 
     questions_by_doc_id = defaultdict(list)
     for qa_entry in dataset.qa_entries:

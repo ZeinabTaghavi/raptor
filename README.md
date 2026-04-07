@@ -198,6 +198,8 @@ That QASPER config is set up to avoid OpenAI dependencies by default:
 - the launcher defaults `CUDA_VISIBLE_DEVICES=0,1`
 - `vllm` tensor parallelism defaults to the number of visible GPUs and is capped to that count if a YAML requests more
 
+The current `vllm` path is strict: if `vllm` cannot initialize or generate, the run now fails instead of silently falling back to `transformers`. When using the `vllm` configs, you should see an `Initializing vLLM engine...` log message during startup.
+
 If you do not have admin access and `vllm` fails on Triton or missing `Python.h`, use the `transformers` fallback config instead:
 
 ```bash
@@ -238,6 +240,68 @@ If `vllm` is not workable in your environment, use:
 CUDA_VISIBLE_DEVICES=0,1,2,3 python scripts/run_raptor_experiment.py \
   --dataset-name loogle \
   --default-yaml configs/raptor/loogle_retrieval_ablation_transformers.yaml
+```
+
+NarrativeQA is supported through the same unified dataset-loader path. The RAPTOR-specific configs are:
+
+- `configs/raptor/nqa_retrieval_ablation.yaml`
+- `configs/raptor/nqa_retrieval_ablation_transformers.yaml`
+
+Use `--dataset-name narrativeqa` so its outputs are stored separately under `raptor_runs/narrativeqa/...`.
+
+Run the default `vllm` variant with:
+
+```bash
+python scripts/run_raptor_experiment.py \
+  --dataset-name narrativeqa \
+  --default-yaml configs/raptor/nqa_retrieval_ablation.yaml
+```
+
+Or via the wrapper:
+
+```bash
+bash main.sh \
+  --dataset-name narrativeqa \
+  --default-yaml configs/raptor/nqa_retrieval_ablation.yaml
+```
+
+If `vllm` is not workable in your environment, use:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1,2,3 python scripts/run_raptor_experiment.py \
+  --dataset-name narrativeqa \
+  --default-yaml configs/raptor/nqa_retrieval_ablation_transformers.yaml
+```
+
+QuALITY is supported through the same unified dataset-loader path. The RAPTOR-specific configs are:
+
+- `configs/raptor/quality_retrieval_ablation.yaml`
+- `configs/raptor/quality_retrieval_ablation_transformers.yaml`
+
+Use `--dataset-name quality` so its outputs are stored separately under `raptor_runs/quality/...`.
+
+Run the default `vllm` variant with:
+
+```bash
+python scripts/run_raptor_experiment.py \
+  --dataset-name quality \
+  --default-yaml configs/raptor/quality_retrieval_ablation.yaml
+```
+
+Or via the wrapper:
+
+```bash
+bash main.sh \
+  --dataset-name quality \
+  --default-yaml configs/raptor/quality_retrieval_ablation.yaml
+```
+
+If `vllm` is not workable in your environment, use:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1,2,3 python scripts/run_raptor_experiment.py \
+  --dataset-name quality \
+  --default-yaml configs/raptor/quality_retrieval_ablation_transformers.yaml
 ```
 
 

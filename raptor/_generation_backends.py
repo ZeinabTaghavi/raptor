@@ -32,6 +32,44 @@ def trim_at_stop(text: str, stop):
     return output.strip()
 
 
+def _get_or_create_vllm_llm(*, model_name: str, engine_kwargs: dict[str, Any] | None = None):
+    engine_kwargs = dict(engine_kwargs or {})
+    try:
+        from vllm import LLM
+    except ImportError as exc:
+        raise RuntimeError(
+            f"vLLM is required for model {model_name!r}, but it is not installed in this environment. "
+            "Install and run with vLLM instead of falling back to transformers."
+        ) from exc
+
+    engine_kwargs.setdefault("trust_remote_code", True)
+    cache_key = (model_name, _freeze(engine_kwargs))
+    llm = _VLLM_CACHE.get(cache_key)
+    if llm is not None:
+        return llm
+
+    LOGGER.info(
+        "Initializing vLLM engine for %s with engine kwargs: %s",
+        model_name,
+        engine_kwargs,
+    )
+    try:
+        llm = LLM(model=model_name, **engine_kwargs)
+    except Exception as exc:
+        raise RuntimeError(
+            f"vLLM failed to initialize for model {model_name!r}. "
+            "The run is configured to use vLLM only, so it will stop instead of falling back. "
+            f"Root error: {exc}"
+        ) from exc
+
+    _VLLM_CACHE[cache_key] = llm
+    return llm
+
+
+def warm_vllm_engine(*, model_name: str, engine_kwargs: dict[str, Any] | None = None):
+    _get_or_create_vllm_llm(model_name=model_name, engine_kwargs=engine_kwargs)
+
+
 def generate_with_vllm(
     *,
     model_name: str,
@@ -43,47 +81,14 @@ def generate_with_vllm(
     stop=None,
 ):
     engine_kwargs = dict(engine_kwargs or {})
-
     try:
-        from vllm import LLM, SamplingParams
+        from vllm import SamplingParams
     except ImportError as exc:
-        LOGGER.warning(
-            "vLLM is unavailable for %s; falling back to transformers generation.",
-            model_name,
-        )
-        return generate_with_transformers(
-            model_name=model_name,
-            prompt=prompt,
-            pipeline_kwargs=_vllm_engine_kwargs_to_transformers_kwargs(engine_kwargs),
-            max_tokens=max_tokens,
-            temperature=temperature,
-            top_p=top_p,
-            stop=stop,
-        )
+        raise RuntimeError(
+            f"vLLM is required for model {model_name!r}, but it is not installed in this environment."
+        ) from exc
 
-    engine_kwargs.setdefault("trust_remote_code", True)
-    cache_key = (model_name, _freeze(engine_kwargs))
-
-    llm = _VLLM_CACHE.get(cache_key)
-    if llm is None:
-        try:
-            llm = LLM(model=model_name, **engine_kwargs)
-        except Exception as exc:
-            LOGGER.warning(
-                "vLLM failed to initialize for %s; falling back to transformers. Root error: %s",
-                model_name,
-                exc,
-            )
-            return generate_with_transformers(
-                model_name=model_name,
-                prompt=prompt,
-                pipeline_kwargs=_vllm_engine_kwargs_to_transformers_kwargs(engine_kwargs),
-                max_tokens=max_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                stop=stop,
-            )
-        _VLLM_CACHE[cache_key] = llm
+    llm = _get_or_create_vllm_llm(model_name=model_name, engine_kwargs=engine_kwargs)
 
     sampling_params = SamplingParams(
         max_tokens=max_tokens,
@@ -94,20 +99,11 @@ def generate_with_vllm(
     try:
         outputs = llm.generate([prompt], sampling_params=sampling_params, use_tqdm=False)
     except Exception as exc:
-        LOGGER.warning(
-            "vLLM generation failed for %s; falling back to transformers. Root error: %s",
-            model_name,
-            exc,
-        )
-        return generate_with_transformers(
-            model_name=model_name,
-            prompt=prompt,
-            pipeline_kwargs=_vllm_engine_kwargs_to_transformers_kwargs(engine_kwargs),
-            max_tokens=max_tokens,
-            temperature=temperature,
-            top_p=top_p,
-            stop=stop,
-        )
+        raise RuntimeError(
+            f"vLLM generation failed for model {model_name!r}. "
+            "The run is configured to use vLLM only, so it will stop instead of falling back. "
+            f"Root error: {exc}"
+        ) from exc
     return trim_at_stop(outputs[0].outputs[0].text, stop)
 
 

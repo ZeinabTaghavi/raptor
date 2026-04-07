@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 from ._compat import retry, stop_after_attempt, wait_random_exponential
 from ._generation_backends import (generate_with_transformers,
-                                   generate_with_vllm)
+                                   generate_with_vllm, warm_vllm_engine)
 
 
 class BaseQAModel(ABC):
@@ -317,6 +317,9 @@ class VLLMQAModel(BaseQAModel):
             f"Question: {question}\n\n"
             "Answer:"
         )
+
+    def warm_up(self):
+        warm_vllm_engine(model_name=self.model, engine_kwargs=self.engine_kwargs)
 
     def answer_question(
         self,
