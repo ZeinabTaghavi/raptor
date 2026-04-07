@@ -19,6 +19,43 @@ RANDOM_SEED = 224
 random.seed(RANDOM_SEED)
 
 
+def _pca_fallback(
+    embeddings: np.ndarray,
+    dim: int,
+    *,
+    phase: str,
+    reason: Exception | None = None,
+) -> np.ndarray:
+    safe_dim = max(1, min(dim, embeddings.shape[0] - 1, embeddings.shape[1]))
+    if reason is not None:
+        logging.warning(
+            "UMAP failed during %s reduction (%s). Falling back to PCA.",
+            phase,
+            reason,
+        )
+    else:
+        logging.warning(
+            "Falling back to PCA during %s reduction.",
+            phase,
+        )
+    try:
+        from sklearn.decomposition import PCA
+    except Exception as exc:
+        logging.warning(
+            "PCA fallback is unavailable during %s reduction (%s). Using raw embeddings instead.",
+            phase,
+            exc,
+        )
+        return embeddings
+
+    if safe_dim >= embeddings.shape[1]:
+        return embeddings
+
+    return PCA(n_components=safe_dim, random_state=RANDOM_SEED).fit_transform(
+        embeddings
+    )
+
+
 def global_cluster_embeddings(
     embeddings: np.ndarray,
     dim: int,
@@ -31,13 +68,27 @@ def global_cluster_embeddings(
         import umap
     except ImportError:
         logging.warning(
-            "umap-learn is not installed. Falling back to raw embeddings for global clustering."
+            "umap-learn is not installed. Falling back to PCA for global clustering."
         )
-        return embeddings
+        return _pca_fallback(embeddings, dim, phase="global")
 
-    reduced_embeddings = umap.UMAP(
-        n_neighbors=n_neighbors, n_components=dim, metric=metric
-    ).fit_transform(embeddings)
+    try:
+        reduced_embeddings = umap.UMAP(
+            n_neighbors=n_neighbors, n_components=dim, metric=metric
+        ).fit_transform(embeddings)
+    except TypeError as exc:
+        reduced_embeddings = _pca_fallback(
+            embeddings,
+            dim,
+            phase="global",
+            reason=exc,
+        )
+    except Exception as exc:
+        logging.warning(
+            "UMAP global reduction failed unexpectedly (%s). Using raw embeddings instead.",
+            exc,
+        )
+        reduced_embeddings = embeddings
     return reduced_embeddings
 
 
@@ -48,13 +99,27 @@ def local_cluster_embeddings(
         import umap
     except ImportError:
         logging.warning(
-            "umap-learn is not installed. Falling back to raw embeddings for local clustering."
+            "umap-learn is not installed. Falling back to PCA for local clustering."
         )
-        return embeddings
+        return _pca_fallback(embeddings, dim, phase="local")
 
-    reduced_embeddings = umap.UMAP(
-        n_neighbors=num_neighbors, n_components=dim, metric=metric
-    ).fit_transform(embeddings)
+    try:
+        reduced_embeddings = umap.UMAP(
+            n_neighbors=num_neighbors, n_components=dim, metric=metric
+        ).fit_transform(embeddings)
+    except TypeError as exc:
+        reduced_embeddings = _pca_fallback(
+            embeddings,
+            dim,
+            phase="local",
+            reason=exc,
+        )
+    except Exception as exc:
+        logging.warning(
+            "UMAP local reduction failed unexpectedly (%s). Using raw embeddings instead.",
+            exc,
+        )
+        reduced_embeddings = embeddings
     return reduced_embeddings
 
 
