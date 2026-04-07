@@ -1042,6 +1042,12 @@ def resolve_run_config(
         lowered_dataset_source = dataset_source_name.lower()
         if lowered_dataset_source in {"qasper", "allenai/qasper"}:
             normalized_loader_name = "qasper"
+        elif lowered_dataset_source in {
+            "loogle",
+            "bigai-nlco/loogle",
+            "bigainlco/loogle",
+        }:
+            normalized_loader_name = "loogle"
         elif lowered_dataset_source not in {"", "files"}:
             normalized_loader_name = lowered_dataset_source
 

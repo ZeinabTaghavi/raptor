@@ -211,6 +211,35 @@ For multi-GPU `transformers` loading with `device_map: auto`, install `accelerat
 
 The runner also supports `transformers`-backed local generation models if you prefer not to use `vllm`.
 
+LooGLE is wired in the same way. The RAPTOR-specific configs are:
+
+- `configs/raptor/loogle_retrieval_ablation.yaml`
+- `configs/raptor/loogle_retrieval_ablation_transformers.yaml`
+
+Run the default `vllm` variant with:
+
+```bash
+python scripts/run_raptor_experiment.py \
+  --dataset-name loogle \
+  --default-yaml configs/raptor/loogle_retrieval_ablation.yaml
+```
+
+Or via the wrapper:
+
+```bash
+bash main.sh \
+  --dataset-name loogle \
+  --default-yaml configs/raptor/loogle_retrieval_ablation.yaml
+```
+
+If `vllm` is not workable in your environment, use:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1,2,3 python scripts/run_raptor_experiment.py \
+  --dataset-name loogle \
+  --default-yaml configs/raptor/loogle_retrieval_ablation_transformers.yaml
+```
+
 
 ### Extending RAPTOR with other Models
 
