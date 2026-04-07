@@ -17,9 +17,15 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import yaml
 
-from .EmbeddingModels import HashEmbeddingModel, OpenAIEmbeddingModel, SBertEmbeddingModel
-from .QAModels import ExtractiveQAModel, GPT3TurboQAModel, GPT4QAModel, UnifiedQAModel
-from .SummarizationModels import ExtractiveSummarizationModel, GPT3SummarizationModel, GPT3TurboSummarizationModel
+from .EmbeddingModels import (HashEmbeddingModel, OpenAIEmbeddingModel,
+                              SBertEmbeddingModel, TransformersEmbeddingModel)
+from .QAModels import (ExtractiveQAModel, GPT3TurboQAModel, GPT4QAModel,
+                       TransformersQAModel, UnifiedQAModel, VLLMQAModel)
+from .SummarizationModels import (ExtractiveSummarizationModel,
+                                  GPT3SummarizationModel,
+                                  GPT3TurboSummarizationModel,
+                                  TransformersSummarizationModel,
+                                  VLLMSummarizationModel)
 from ._compat import get_default_tokenizer
 from .cluster_tree_builder import ClusterTreeBuilder, ClusterTreeConfig
 from .tree_retriever import TreeRetriever, TreeRetrieverConfig
@@ -674,6 +680,16 @@ def _build_embedding_model(model_config: Dict[str, Any]):
                 "model", "sentence-transformers/multi-qa-mpnet-base-cos-v1"
             )
         )
+    if provider in {"transformers", "hf", "contriever"}:
+        default_model_name = "facebook/contriever" if provider == "contriever" else "facebook/contriever"
+        return TransformersEmbeddingModel(
+            model_name=model_config.get("model", default_model_name),
+            pooling=model_config.get("pooling", "mean"),
+            normalize=bool(model_config.get("normalize", True)),
+            max_length=int(model_config.get("max_length", 512)),
+            trust_remote_code=bool(model_config.get("trust_remote_code", True)),
+            device=model_config.get("device"),
+        )
     if provider in {"hash", "local_hash"}:
         return HashEmbeddingModel(dimension=int(model_config.get("dimension", 256)))
     raise ValueError(f"Unsupported embedding provider: {provider}")
@@ -686,6 +702,32 @@ def _build_summarization_model(model_config: Dict[str, Any]):
         if model_name == "text-davinci-003":
             return GPT3SummarizationModel(model=model_name)
         return GPT3TurboSummarizationModel(model=model_name)
+    if provider in {"transformers", "hf"}:
+        return TransformersSummarizationModel(
+            model_name=model_config["model"],
+            pipeline_kwargs={
+                key: value
+                for key, value in model_config.items()
+                if key
+                not in {"provider", "model", "temperature", "top_p", "stop"}
+            },
+            temperature=float(model_config.get("temperature", 0.0)),
+            top_p=float(model_config.get("top_p", 1.0)),
+            stop=model_config.get("stop"),
+        )
+    if provider == "vllm":
+        return VLLMSummarizationModel(
+            model_name=model_config["model"],
+            engine_kwargs={
+                key: value
+                for key, value in model_config.items()
+                if key
+                not in {"provider", "model", "temperature", "top_p", "stop", "device"}
+            },
+            temperature=float(model_config.get("temperature", 0.0)),
+            top_p=float(model_config.get("top_p", 1.0)),
+            stop=model_config.get("stop"),
+        )
     if provider in {"extractive", "local"}:
         return ExtractiveSummarizationModel()
     raise ValueError(f"Unsupported summarization provider: {provider}")
@@ -698,6 +740,49 @@ def _build_qa_model(model_config: Dict[str, Any]):
         if model_name == "gpt-4":
             return GPT4QAModel(model=model_name)
         return GPT3TurboQAModel(model=model_name)
+    if provider in {"transformers", "hf"}:
+        return TransformersQAModel(
+            model_name=model_config["model"],
+            pipeline_kwargs={
+                key: value
+                for key, value in model_config.items()
+                if key
+                not in {
+                    "provider",
+                    "model",
+                    "default_max_tokens",
+                    "temperature",
+                    "top_p",
+                    "stop",
+                }
+            },
+            default_max_tokens=int(model_config.get("default_max_tokens", 256)),
+            temperature=float(model_config.get("temperature", 0.0)),
+            top_p=float(model_config.get("top_p", 1.0)),
+            stop=model_config.get("stop"),
+        )
+    if provider == "vllm":
+        return VLLMQAModel(
+            model_name=model_config["model"],
+            engine_kwargs={
+                key: value
+                for key, value in model_config.items()
+                if key
+                not in {
+                    "provider",
+                    "model",
+                    "default_max_tokens",
+                    "temperature",
+                    "top_p",
+                    "stop",
+                    "device",
+                }
+            },
+            default_max_tokens=int(model_config.get("default_max_tokens", 256)),
+            temperature=float(model_config.get("temperature", 0.0)),
+            top_p=float(model_config.get("top_p", 1.0)),
+            stop=model_config.get("stop"),
+        )
     if provider in {"unifiedqa"}:
         return UnifiedQAModel(model_name=model_config.get("model", "allenai/unifiedqa-v2-t5-3b-1363200"))
     if provider in {"extractive", "local"}:
@@ -820,6 +905,61 @@ def resolve_run_config(
     )
     if generation_top_p_path:
         mapped_fields.append(f"Mapped generation top_p from {generation_top_p_path}.")
+
+    model_backend, model_backend_path = _first_present(
+        raw_reference,
+        ["models.qa.provider", "model.backend"],
+    )
+    if model_backend_path:
+        mapped_fields.append(f"Mapped model backend from {model_backend_path}.")
+
+    model_id, model_id_path = _first_present(
+        raw_reference,
+        ["models.qa.model", "model.model_id"],
+    )
+    if model_id_path:
+        mapped_fields.append(f"Mapped model id from {model_id_path}.")
+
+    model_tensor_parallel_size, model_tensor_parallel_size_path = _first_present(
+        raw_reference,
+        ["models.qa.tensor_parallel_size", "model.tensor_parallel_size"],
+    )
+    if model_tensor_parallel_size_path:
+        mapped_fields.append(
+            f"Mapped tensor_parallel_size from {model_tensor_parallel_size_path}."
+        )
+
+    model_dtype, model_dtype_path = _first_present(
+        raw_reference,
+        ["models.qa.dtype", "model.dtype"],
+    )
+    if model_dtype_path:
+        mapped_fields.append(f"Mapped dtype from {model_dtype_path}.")
+
+    model_gpu_memory_utilization, model_gpu_memory_utilization_path = _first_present(
+        raw_reference,
+        ["models.qa.gpu_memory_utilization", "model.gpu_memory_utilization"],
+    )
+    if model_gpu_memory_utilization_path:
+        mapped_fields.append(
+            f"Mapped gpu_memory_utilization from {model_gpu_memory_utilization_path}."
+        )
+
+    model_device, model_device_path = _first_present(
+        raw_reference,
+        ["models.qa.device", "model.device"],
+    )
+    if model_device_path:
+        mapped_fields.append(f"Mapped device from {model_device_path}.")
+
+    model_trust_remote_code, model_trust_remote_code_path = _first_present(
+        raw_reference,
+        ["models.qa.trust_remote_code", "model.trust_remote_code"],
+    )
+    if model_trust_remote_code_path:
+        mapped_fields.append(
+            f"Mapped trust_remote_code from {model_trust_remote_code_path}."
+        )
 
     documents_path, documents_path_source = _first_present(
         raw_reference,
@@ -948,20 +1088,88 @@ def resolve_run_config(
             "Could not resolve a QA path from the YAML. Add dataset.qa.path or use dataset.combined.path."
         )
 
+    inferred_backend = str(model_backend).lower() if model_backend is not None else None
+    if inferred_backend == "vllm":
+        default_embedding_provider = "contriever"
+        default_embedding_model = "facebook/contriever"
+        default_generation_provider = "vllm"
+        default_generation_model = model_id or "Qwen/Qwen3-30B-A3B-Instruct-2507"
+    elif inferred_backend in {"transformers", "hf"}:
+        default_embedding_provider = "contriever"
+        default_embedding_model = "facebook/contriever"
+        default_generation_provider = "transformers"
+        default_generation_model = model_id or "Qwen/Qwen2.5-7B-Instruct"
+    else:
+        default_embedding_provider = "openai"
+        default_embedding_model = "text-embedding-ada-002"
+        default_generation_provider = "openai"
+        default_generation_model = "gpt-3.5-turbo"
+
+    base_embedding_config = explicit_config.get("models", {}).get("embedding", {})
+    if not base_embedding_config and default_embedding_provider in {"contriever", "transformers"}:
+        base_embedding_config = {
+            "provider": default_embedding_provider,
+            "model": default_embedding_model,
+            "trust_remote_code": True,
+        }
+        if model_device is not None:
+            base_embedding_config["device"] = model_device
+
+    base_summarization_config = explicit_config.get("models", {}).get("summarization", {})
+    base_qa_config = explicit_config.get("models", {}).get("qa", {})
+    if not base_summarization_config and inferred_backend in {"vllm", "transformers", "hf"}:
+        base_summarization_config = {
+            "provider": default_generation_provider,
+            "model": default_generation_model,
+            "trust_remote_code": True if model_trust_remote_code is None else model_trust_remote_code,
+        }
+    if not base_qa_config and inferred_backend in {"vllm", "transformers", "hf"}:
+        base_qa_config = {
+            "provider": default_generation_provider,
+            "model": default_generation_model,
+            "trust_remote_code": True if model_trust_remote_code is None else model_trust_remote_code,
+        }
+
+    for config_block in (base_summarization_config, base_qa_config):
+        if not config_block:
+            continue
+        if model_tensor_parallel_size is not None:
+            config_block.setdefault("tensor_parallel_size", model_tensor_parallel_size)
+        if model_dtype is not None:
+            config_block.setdefault("dtype", model_dtype)
+        if model_gpu_memory_utilization is not None:
+            config_block.setdefault(
+                "gpu_memory_utilization", model_gpu_memory_utilization
+            )
+        if model_device is not None and config_block.get("provider") != "vllm":
+            config_block.setdefault("device", model_device)
+
+    if base_summarization_config:
+        base_summarization_config.setdefault("temperature", 0.0)
+        base_summarization_config.setdefault("top_p", 1.0)
+
+    if base_qa_config:
+        if generation_temperature is not None:
+            base_qa_config.setdefault("temperature", generation_temperature)
+        if generation_top_p is not None:
+            base_qa_config.setdefault("top_p", generation_top_p)
+        if generation_stop is not None:
+            base_qa_config.setdefault("stop", generation_stop)
+
     embedding_config = _normalize_model_config(
-        explicit_config.get("models", {}).get("embedding", {}),
-        default_provider="openai",
-        default_model="text-embedding-ada-002",
+        base_embedding_config,
+        default_provider=default_embedding_provider,
+        default_model=default_embedding_model,
     )
     summarization_config = _normalize_model_config(
-        explicit_config.get("models", {}).get("summarization", {}),
-        default_provider="openai",
-        default_model="gpt-3.5-turbo",
+        base_summarization_config,
+        default_provider=default_generation_provider,
+        default_model=default_generation_model,
     )
     qa_config = _normalize_model_config(
-        explicit_config.get("models", {}).get("qa", {}),
-        default_provider="openai",
-        default_model="gpt-3.5-turbo",
+        base_qa_config,
+        default_provider=default_generation_provider,
+        default_model=default_generation_model,
     )
 
     resolved_config = {
@@ -1051,7 +1259,7 @@ def resolve_run_config(
         )
     if _deep_get(raw_reference, "model.backend") is not None and not explicit_config.get("models"):
         notes.append(
-            "The source YAML model backend was kept as reference only; the RAPTOR runner defaulted to native OpenAI-backed model settings because no RAPTOR-specific models block was provided."
+            "Mapped the source YAML model backend into RAPTOR-native model settings because no explicit RAPTOR models block was provided."
         )
     if raw_reference.get("output_dir") is not None and not explicit_config.get("output_root"):
         notes.append(
@@ -1081,6 +1289,12 @@ def _invoke_qa_model(qa_model, context: str, question: str, generation_settings:
             kwargs["stop_sequence"] = stop_value[0]
         else:
             kwargs["stop_sequence"] = stop_value
+
+    if "temperature" in parameters and generation_settings.get("temperature") is not None:
+        kwargs["temperature"] = float(generation_settings["temperature"])
+
+    if "top_p" in parameters and generation_settings.get("top_p") is not None:
+        kwargs["top_p"] = float(generation_settings["top_p"])
 
     return answer_question(context, question, **kwargs)
 

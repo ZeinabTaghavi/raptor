@@ -182,6 +182,14 @@ python scripts/run_raptor_experiment.py \
   --default-yaml configs/raptor/qasper_retrieval_ablation.yaml
 ```
 
+That QASPER config is set up to avoid OpenAI dependencies by default:
+
+- embeddings use `facebook/contriever`
+- tree summarization uses a `vllm`-backed Qwen model
+- answer generation uses the same `vllm`-backed Qwen model
+
+The runner also supports `transformers`-backed local generation models if you prefer not to use `vllm`.
+
 
 ### Extending RAPTOR with other Models
 

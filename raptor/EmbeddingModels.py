@@ -53,6 +53,67 @@ class SBertEmbeddingModel(BaseEmbeddingModel):
         return self.model.encode(text)
 
 
+class TransformersEmbeddingModel(BaseEmbeddingModel):
+    def __init__(
+        self,
+        model_name="facebook/contriever",
+        pooling="mean",
+        normalize=True,
+        max_length=512,
+        trust_remote_code=True,
+        device=None,
+    ):
+        try:
+            import torch
+            from transformers import AutoModel, AutoTokenizer
+        except ImportError as exc:
+            raise ImportError(
+                "torch and transformers are required to use TransformersEmbeddingModel."
+            ) from exc
+
+        self._torch = torch
+        self.model_name = model_name
+        self.pooling = pooling
+        self.normalize = normalize
+        self.max_length = max_length
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_name, trust_remote_code=trust_remote_code
+        )
+        self.model = AutoModel.from_pretrained(
+            model_name, trust_remote_code=trust_remote_code
+        ).to(self.device)
+        self.model.eval()
+
+    def _mean_pool(self, model_output, attention_mask):
+        token_embeddings = model_output.last_hidden_state
+        input_mask_expanded = (
+            attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+        )
+        return (token_embeddings * input_mask_expanded).sum(1) / input_mask_expanded.sum(
+            1
+        ).clamp(min=1e-9)
+
+    def create_embedding(self, text):
+        inputs = self.tokenizer(
+            text,
+            padding=True,
+            truncation=True,
+            max_length=self.max_length,
+            return_tensors="pt",
+        )
+        inputs = {key: value.to(self.device) for key, value in inputs.items()}
+        with self._torch.no_grad():
+            outputs = self.model(**inputs)
+        if self.pooling == "cls":
+            embedding = outputs.last_hidden_state[:, 0]
+        else:
+            embedding = self._mean_pool(outputs, inputs["attention_mask"])
+        if self.normalize:
+            embedding = self._torch.nn.functional.normalize(embedding, p=2, dim=1)
+        return embedding[0].detach().cpu().numpy().astype(np.float32).tolist()
+
+
 class HashEmbeddingModel(BaseEmbeddingModel):
     """
     Lightweight local embedding model for smoke tests and offline runs.

@@ -5,6 +5,8 @@ import re
 from abc import ABC, abstractmethod
 
 from ._compat import retry, stop_after_attempt, wait_random_exponential
+from ._generation_backends import (generate_with_transformers,
+                                   generate_with_vllm)
 
 
 class BaseQAModel(ABC):
@@ -242,3 +244,95 @@ class ExtractiveQAModel(BaseQAModel):
 
         best_sentence = max(sentences, key=score)
         return best_sentence
+
+
+class TransformersQAModel(BaseQAModel):
+    def __init__(
+        self,
+        model_name,
+        *,
+        pipeline_kwargs=None,
+        default_max_tokens=256,
+        temperature=0.0,
+        top_p=1.0,
+        stop=None,
+    ):
+        self.model = model_name
+        self.pipeline_kwargs = dict(pipeline_kwargs or {})
+        self.default_max_tokens = default_max_tokens
+        self.temperature = temperature
+        self.top_p = top_p
+        self.stop = stop
+
+    def _build_prompt(self, context, question):
+        return (
+            "You are a question answering assistant. Answer the question using only the given context.\n\n"
+            f"Context:\n{context}\n\n"
+            f"Question: {question}\n\n"
+            "Answer:"
+        )
+
+    def answer_question(
+        self,
+        context,
+        question,
+        max_tokens=None,
+        stop_sequence=None,
+        temperature=None,
+        top_p=None,
+    ):
+        return generate_with_transformers(
+            model_name=self.model,
+            prompt=self._build_prompt(context, question),
+            pipeline_kwargs=self.pipeline_kwargs,
+            max_tokens=int(max_tokens or self.default_max_tokens),
+            temperature=self.temperature if temperature is None else temperature,
+            top_p=self.top_p if top_p is None else top_p,
+            stop=stop_sequence or self.stop,
+        )
+
+
+class VLLMQAModel(BaseQAModel):
+    def __init__(
+        self,
+        model_name,
+        *,
+        engine_kwargs=None,
+        default_max_tokens=256,
+        temperature=0.0,
+        top_p=1.0,
+        stop=None,
+    ):
+        self.model = model_name
+        self.engine_kwargs = dict(engine_kwargs or {})
+        self.default_max_tokens = default_max_tokens
+        self.temperature = temperature
+        self.top_p = top_p
+        self.stop = stop
+
+    def _build_prompt(self, context, question):
+        return (
+            "You are a question answering assistant. Answer the question using only the given context.\n\n"
+            f"Context:\n{context}\n\n"
+            f"Question: {question}\n\n"
+            "Answer:"
+        )
+
+    def answer_question(
+        self,
+        context,
+        question,
+        max_tokens=None,
+        stop_sequence=None,
+        temperature=None,
+        top_p=None,
+    ):
+        return generate_with_vllm(
+            model_name=self.model,
+            prompt=self._build_prompt(context, question),
+            engine_kwargs=self.engine_kwargs,
+            max_tokens=int(max_tokens or self.default_max_tokens),
+            temperature=self.temperature if temperature is None else temperature,
+            top_p=self.top_p if top_p is None else top_p,
+            stop=stop_sequence or self.stop,
+        )

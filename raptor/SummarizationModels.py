@@ -2,6 +2,8 @@ import logging
 from abc import ABC, abstractmethod
 
 from ._compat import retry, stop_after_attempt, wait_random_exponential
+from ._generation_backends import (generate_with_transformers,
+                                   generate_with_vllm)
 
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 
@@ -84,3 +86,69 @@ class ExtractiveSummarizationModel(BaseSummarizationModel):
         if max_tokens is None or max_tokens <= 0:
             return context
         return " ".join(tokens[:max_tokens])
+
+
+class TransformersSummarizationModel(BaseSummarizationModel):
+    def __init__(
+        self,
+        model_name,
+        *,
+        pipeline_kwargs=None,
+        temperature=0.0,
+        top_p=1.0,
+        stop=None,
+    ):
+        self.model = model_name
+        self.pipeline_kwargs = dict(pipeline_kwargs or {})
+        self.temperature = temperature
+        self.top_p = top_p
+        self.stop = stop
+
+    def summarize(self, context, max_tokens=150, stop_sequence=None):
+        prompt = (
+            "Write a concise summary of the following text while preserving the key details.\n\n"
+            f"Text:\n{context}\n\n"
+            "Summary:"
+        )
+        return generate_with_transformers(
+            model_name=self.model,
+            prompt=prompt,
+            pipeline_kwargs=self.pipeline_kwargs,
+            max_tokens=max_tokens,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            stop=stop_sequence or self.stop,
+        )
+
+
+class VLLMSummarizationModel(BaseSummarizationModel):
+    def __init__(
+        self,
+        model_name,
+        *,
+        engine_kwargs=None,
+        temperature=0.0,
+        top_p=1.0,
+        stop=None,
+    ):
+        self.model = model_name
+        self.engine_kwargs = dict(engine_kwargs or {})
+        self.temperature = temperature
+        self.top_p = top_p
+        self.stop = stop
+
+    def summarize(self, context, max_tokens=150, stop_sequence=None):
+        prompt = (
+            "Write a concise summary of the following text while preserving the key details.\n\n"
+            f"Text:\n{context}\n\n"
+            "Summary:"
+        )
+        return generate_with_vllm(
+            model_name=self.model,
+            prompt=prompt,
+            engine_kwargs=self.engine_kwargs,
+            max_tokens=max_tokens,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            stop=stop_sequence or self.stop,
+        )
