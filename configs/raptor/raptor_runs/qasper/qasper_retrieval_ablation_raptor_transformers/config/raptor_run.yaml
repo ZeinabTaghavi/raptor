@@ -40,11 +40,10 @@ dataset_loader_settings:
     max_questions_per_doc: null
   per_document_retrieval: true
 llm_model: &id001
-  provider: vllm
+  provider: transformers
   model: Qwen/Qwen3-30B-A3B-Instruct-2507
-  tensor_parallel_size: 2
+  device_map: auto
   dtype: bfloat16
-  gpu_memory_utilization: 0.9
   trust_remote_code: true
   temperature: 0.6
   top_p: 0.95
@@ -69,11 +68,10 @@ tree_builder_settings:
   reduction_dimension: 10
   clustering_params: {}
   summarization_model:
-    provider: vllm
+    provider: transformers
     model: Qwen/Qwen3-30B-A3B-Instruct-2507
-    tensor_parallel_size: 2
+    device_map: auto
     dtype: bfloat16
-    gpu_memory_utilization: 0.9
     trust_remote_code: true
     temperature: 0.0
     top_p: 1.0
@@ -99,8 +97,8 @@ profiling_settings:
   record_resource_usage: true
 run_settings:
   dataset_name: qasper
-  run_name: qasper_retrieval_ablation_raptor
+  run_name: qasper_retrieval_ablation_raptor_transformers
   output_root: /home/iataghav/raptor/configs/raptor/raptor_runs
   resume: false
-  default_experiment_yaml: /home/iataghav/raptor/configs/raptor/qasper_retrieval_ablation.yaml
+  default_experiment_yaml: /home/iataghav/raptor/configs/raptor/qasper_retrieval_ablation_transformers.yaml
 mapping_notes: []

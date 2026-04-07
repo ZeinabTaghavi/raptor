@@ -1,0 +1,5 @@
+{"phase": "build", "doc_id": "1911.10742", "query_id": null, "cpu_memory_mb": 5624.02, "gpu_memory_mb": 15578.085, "gpu_peak_memory_mb": 15700.479}
+{"phase": "build", "doc_id": "1904.09131", "query_id": null, "cpu_memory_mb": 5624.02, "gpu_memory_mb": 15578.085, "gpu_peak_memory_mb": 15680.816}
+{"phase": "build", "doc_id": "1611.06322", "query_id": null, "cpu_memory_mb": 5624.02, "gpu_memory_mb": 15578.085, "gpu_peak_memory_mb": 15688.875}
+{"phase": "build", "doc_id": "1604.02038", "query_id": null, "cpu_memory_mb": 5624.02, "gpu_memory_mb": 15578.085, "gpu_peak_memory_mb": 15674.526}
+{"phase": "build", "doc_id": "1911.04474", "query_id": null, "cpu_memory_mb": 5624.02, "gpu_memory_mb": 15578.085, "gpu_peak_memory_mb": 15699.464}
