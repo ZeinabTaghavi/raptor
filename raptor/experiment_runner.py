@@ -673,6 +673,14 @@ def _normalize_model_config(model_config: Dict[str, Any], default_provider: str,
 def _visible_gpu_count(default: int = 1) -> int:
     raw_value = os.environ.get("CUDA_VISIBLE_DEVICES")
     if not raw_value:
+        try:
+            import torch
+
+            detected = int(torch.cuda.device_count())
+            if detected > 0:
+                return detected
+        except Exception:
+            pass
         return default
     devices = [item.strip() for item in raw_value.split(",") if item.strip()]
     return max(1, len(devices)) if devices else default
@@ -1180,7 +1188,7 @@ def resolve_run_config(
         default_model=default_generation_model,
     )
 
-    visible_gpu_count = _visible_gpu_count(default=2)
+    visible_gpu_count = _visible_gpu_count(default=1)
     for label, config_block in (
         ("summarization", summarization_config),
         ("qa", qa_config),

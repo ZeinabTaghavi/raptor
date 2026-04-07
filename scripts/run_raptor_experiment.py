@@ -2,11 +2,8 @@
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
-
-os.environ.setdefault("CUDA_VISIBLE_DEVICES", "0,1")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:

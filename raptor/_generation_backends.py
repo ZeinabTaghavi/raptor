@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 
 _VLLM_CACHE: dict[tuple[Any, ...], Any] = {}
 _TRANSFORMERS_PIPELINE_CACHE: dict[tuple[Any, ...], Any] = {}
+LOGGER = logging.getLogger(__name__)
 
 
 def _freeze(value: Any):
@@ -40,14 +42,25 @@ def generate_with_vllm(
     top_p: float = 1.0,
     stop=None,
 ):
+    engine_kwargs = dict(engine_kwargs or {})
+
     try:
         from vllm import LLM, SamplingParams
     except ImportError as exc:
-        raise ImportError(
-            "vllm is required for provider='vllm'. Install it in the RAPTOR environment."
-        ) from exc
+        LOGGER.warning(
+            "vLLM is unavailable for %s; falling back to transformers generation.",
+            model_name,
+        )
+        return generate_with_transformers(
+            model_name=model_name,
+            prompt=prompt,
+            pipeline_kwargs=_vllm_engine_kwargs_to_transformers_kwargs(engine_kwargs),
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            stop=stop,
+        )
 
-    engine_kwargs = dict(engine_kwargs or {})
     engine_kwargs.setdefault("trust_remote_code", True)
     cache_key = (model_name, _freeze(engine_kwargs))
 
@@ -56,14 +69,20 @@ def generate_with_vllm(
         try:
             llm = LLM(model=model_name, **engine_kwargs)
         except Exception as exc:
-            message = str(exc)
-            if "Python.h" in message or "No such file or directory" in message:
-                raise RuntimeError(
-                    "vLLM/Triton failed to compile because Python development headers are missing. "
-                    "Without admin access, the easiest workaround is to switch RAPTOR to the "
-                    "'transformers' backend for Qwen instead of 'vllm'."
-                ) from exc
-            raise
+            LOGGER.warning(
+                "vLLM failed to initialize for %s; falling back to transformers. Root error: %s",
+                model_name,
+                exc,
+            )
+            return generate_with_transformers(
+                model_name=model_name,
+                prompt=prompt,
+                pipeline_kwargs=_vllm_engine_kwargs_to_transformers_kwargs(engine_kwargs),
+                max_tokens=max_tokens,
+                temperature=temperature,
+                top_p=top_p,
+                stop=stop,
+            )
         _VLLM_CACHE[cache_key] = llm
 
     sampling_params = SamplingParams(
@@ -72,8 +91,40 @@ def generate_with_vllm(
         top_p=top_p,
         stop=stop,
     )
-    outputs = llm.generate([prompt], sampling_params=sampling_params, use_tqdm=False)
+    try:
+        outputs = llm.generate([prompt], sampling_params=sampling_params, use_tqdm=False)
+    except Exception as exc:
+        LOGGER.warning(
+            "vLLM generation failed for %s; falling back to transformers. Root error: %s",
+            model_name,
+            exc,
+        )
+        return generate_with_transformers(
+            model_name=model_name,
+            prompt=prompt,
+            pipeline_kwargs=_vllm_engine_kwargs_to_transformers_kwargs(engine_kwargs),
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            stop=stop,
+        )
     return trim_at_stop(outputs[0].outputs[0].text, stop)
+
+
+def _vllm_engine_kwargs_to_transformers_kwargs(engine_kwargs: dict[str, Any]) -> dict[str, Any]:
+    pipeline_kwargs: dict[str, Any] = {
+        "device_map": "auto",
+    }
+
+    for key in ("trust_remote_code", "revision"):
+        if key in engine_kwargs:
+            pipeline_kwargs[key] = engine_kwargs[key]
+
+    dtype = engine_kwargs.get("dtype")
+    if dtype is not None:
+        pipeline_kwargs["torch_dtype"] = dtype
+
+    return pipeline_kwargs
 
 
 def generate_with_transformers(
