@@ -1,0 +1,20 @@
+{
+  "qa_entries": [
+    {
+      "query_id": "cinderella_q1",
+      "doc_id": "cinderella",
+      "question": "How did Cinderella reach her happy ending?",
+      "reference_answers": [
+        "She married the prince after the glass slipper fit."
+      ]
+    },
+    {
+      "query_id": "cinderella_q2",
+      "doc_id": "cinderella",
+      "question": "Who helped Cinderella go to the ball?",
+      "reference_answers": [
+        "Her fairy godmother helped her."
+      ]
+    }
+  ]
+}

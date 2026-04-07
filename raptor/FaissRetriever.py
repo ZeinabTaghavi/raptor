@@ -1,11 +1,10 @@
 import random
 from concurrent.futures import ProcessPoolExecutor
 
-import faiss
 import numpy as np
-import tiktoken
 from tqdm import tqdm
 
+from ._compat import get_default_tokenizer
 from .EmbeddingModels import BaseEmbeddingModel, OpenAIEmbeddingModel
 from .Retrievers import BaseRetriever
 from .utils import split_text
@@ -20,7 +19,7 @@ class FaissRetrieverConfig:
         embedding_model=None,
         question_embedding_model=None,
         top_k=5,
-        tokenizer=tiktoken.get_encoding("cl100k_base"),
+        tokenizer=None,
         embedding_model_string=None,
     ):
         if max_tokens < 1:
@@ -52,7 +51,7 @@ class FaissRetrieverConfig:
         self.use_top_k = use_top_k
         self.embedding_model = embedding_model or OpenAIEmbeddingModel()
         self.question_embedding_model = question_embedding_model or self.embedding_model
-        self.tokenizer = tokenizer
+        self.tokenizer = tokenizer or get_default_tokenizer()
         self.embedding_model_string = embedding_model_string or "OpenAI"
 
     def log_config(self):
@@ -87,6 +86,14 @@ class FaissRetriever(BaseRetriever):
     """
 
     def __init__(self, config):
+        try:
+            import faiss
+        except ImportError as exc:
+            raise ImportError(
+                "faiss-cpu is required to use FaissRetriever. Install project requirements first."
+            ) from exc
+
+        self.faiss = faiss
         self.embedding_model = config.embedding_model
         self.question_embedding_model = config.question_embedding_model
         self.index = None
@@ -122,7 +129,7 @@ class FaissRetriever(BaseRetriever):
 
         self.embeddings = np.array(self.embeddings, dtype=np.float32)
 
-        self.index = faiss.IndexFlatIP(self.embeddings.shape[1])
+        self.index = self.faiss.IndexFlatIP(self.embeddings.shape[1])
         self.index.add(self.embeddings)
 
     def build_from_leaf_nodes(self, leaf_nodes):
@@ -141,7 +148,7 @@ class FaissRetriever(BaseRetriever):
             dtype=np.float32,
         )
 
-        self.index = faiss.IndexFlatIP(self.embeddings.shape[1])
+        self.index = self.faiss.IndexFlatIP(self.embeddings.shape[1])
         self.index.add(self.embeddings)
 
     def sanity_check(self, num_samples=4):

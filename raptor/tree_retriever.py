@@ -1,10 +1,7 @@
 import logging
-import os
 from typing import Dict, List, Set
 
-import tiktoken
-from tenacity import retry, stop_after_attempt, wait_random_exponential
-
+from ._compat import get_default_tokenizer
 from .EmbeddingModels import BaseEmbeddingModel, OpenAIEmbeddingModel
 from .Retrievers import BaseRetriever
 from .tree_structures import Node, Tree
@@ -29,7 +26,7 @@ class TreeRetrieverConfig:
         start_layer=None,
     ):
         if tokenizer is None:
-            tokenizer = tiktoken.get_encoding("cl100k_base")
+            tokenizer = get_default_tokenizer()
         self.tokenizer = tokenizer
 
         if threshold is None:
@@ -155,6 +152,16 @@ class TreeRetriever(BaseRetriever):
         """
         return self.embedding_model.create_embedding(text)
 
+    def _node_payload(self, node: Node, rank: int) -> Dict:
+        return {
+            "node_index": node.index,
+            "layer_number": self.tree_node_index_to_layer[node.index],
+            "text": node.text,
+            "token_count": len(self.tokenizer.encode(node.text)),
+            "rank": rank,
+            "children": sorted(node.children),
+        }
+
     def retrieve_information_collapse_tree(self, query: str, top_k: int, max_tokens: int) -> str:
         """
         Retrieves the most relevant information from the tree based on the query.
@@ -170,6 +177,7 @@ class TreeRetriever(BaseRetriever):
         query_embedding = self.create_embedding(query)
 
         selected_nodes = []
+        retrieved_nodes = []
 
         node_list = get_node_list(self.tree.all_nodes)
 
@@ -180,7 +188,7 @@ class TreeRetriever(BaseRetriever):
         indices = indices_of_nearest_neighbors_from_distances(distances)
 
         total_tokens = 0
-        for idx in indices[:top_k]:
+        for rank, idx in enumerate(indices[:top_k], start=1):
 
             node = node_list[idx]
             node_tokens = len(self.tokenizer.encode(node.text))
@@ -189,10 +197,11 @@ class TreeRetriever(BaseRetriever):
                 break
 
             selected_nodes.append(node)
+            retrieved_nodes.append(self._node_payload(node, rank))
             total_tokens += node_tokens
 
         context = get_text(selected_nodes)
-        return selected_nodes, context
+        return selected_nodes, context, retrieved_nodes
 
     def retrieve_information(
         self, current_nodes: List[Node], query: str, num_layers: int
@@ -212,6 +221,7 @@ class TreeRetriever(BaseRetriever):
         query_embedding = self.create_embedding(query)
 
         selected_nodes = []
+        retrieved_nodes = []
 
         node_list = current_nodes
 
@@ -234,6 +244,10 @@ class TreeRetriever(BaseRetriever):
             nodes_to_add = [node_list[idx] for idx in best_indices]
 
             selected_nodes.extend(nodes_to_add)
+            retrieved_nodes.extend(
+                self._node_payload(node_list[idx], rank)
+                for rank, idx in enumerate(best_indices, start=1)
+            )
 
             if layer != num_layers - 1:
 
@@ -247,7 +261,69 @@ class TreeRetriever(BaseRetriever):
                 node_list = [self.tree.all_nodes[i] for i in child_nodes]
 
         context = get_text(selected_nodes)
-        return selected_nodes, context
+        return selected_nodes, context, retrieved_nodes
+
+    def retrieve_with_metadata(
+        self,
+        query: str,
+        start_layer: int = None,
+        num_layers: int = None,
+        top_k: int = 10,
+        max_tokens: int = 3500,
+        collapse_tree: bool = True,
+    ) -> Dict:
+        """
+        Queries the tree and returns structured retrieval metadata.
+        """
+
+        if not isinstance(query, str):
+            raise ValueError("query must be a string")
+
+        if not isinstance(max_tokens, int) or max_tokens < 1:
+            raise ValueError("max_tokens must be an integer and at least 1")
+
+        if not isinstance(collapse_tree, bool):
+            raise ValueError("collapse_tree must be a boolean")
+
+        start_layer = self.start_layer if start_layer is None else start_layer
+        num_layers = self.num_layers if num_layers is None else num_layers
+
+        if not isinstance(start_layer, int) or not (
+            0 <= start_layer <= self.tree.num_layers
+        ):
+            raise ValueError(
+                "start_layer must be an integer between 0 and tree.num_layers"
+            )
+
+        if not isinstance(num_layers, int) or num_layers < 1:
+            raise ValueError("num_layers must be an integer and at least 1")
+
+        if num_layers > (start_layer + 1):
+            raise ValueError("num_layers must be less than or equal to start_layer + 1")
+
+        if collapse_tree:
+            logging.info("Using collapsed_tree")
+            selected_nodes, context, retrieved_nodes = (
+                self.retrieve_information_collapse_tree(query, top_k, max_tokens)
+            )
+        else:
+            layer_nodes = self.tree.layer_to_nodes[start_layer]
+            selected_nodes, context, retrieved_nodes = self.retrieve_information(
+                layer_nodes, query, num_layers
+            )
+
+        return {
+            "context": context,
+            "selected_nodes": selected_nodes,
+            "retrieved_nodes": retrieved_nodes,
+            "layer_information": [
+                {
+                    "node_index": node.index,
+                    "layer_number": self.tree_node_index_to_layer[node.index],
+                }
+                for node in selected_nodes
+            ],
+        }
 
     def retrieve(
         self,
@@ -273,55 +349,16 @@ class TreeRetriever(BaseRetriever):
             str: The result of the query.
         """
 
-        if not isinstance(query, str):
-            raise ValueError("query must be a string")
-
-        if not isinstance(max_tokens, int) or max_tokens < 1:
-            raise ValueError("max_tokens must be an integer and at least 1")
-
-        if not isinstance(collapse_tree, bool):
-            raise ValueError("collapse_tree must be a boolean")
-
-        # Set defaults
-        start_layer = self.start_layer if start_layer is None else start_layer
-        num_layers = self.num_layers if num_layers is None else num_layers
-
-        if not isinstance(start_layer, int) or not (
-            0 <= start_layer <= self.tree.num_layers
-        ):
-            raise ValueError(
-                "start_layer must be an integer between 0 and tree.num_layers"
-            )
-
-        if not isinstance(num_layers, int) or num_layers < 1:
-            raise ValueError("num_layers must be an integer and at least 1")
-
-        if num_layers > (start_layer + 1):
-            raise ValueError("num_layers must be less than or equal to start_layer + 1")
-
-        if collapse_tree:
-            logging.info(f"Using collapsed_tree")
-            selected_nodes, context = self.retrieve_information_collapse_tree(
-                query, top_k, max_tokens
-            )
-        else:
-            layer_nodes = self.tree.layer_to_nodes[start_layer]
-            selected_nodes, context = self.retrieve_information(
-                layer_nodes, query, num_layers
-            )
+        retrieval_payload = self.retrieve_with_metadata(
+            query=query,
+            start_layer=start_layer,
+            num_layers=num_layers,
+            top_k=top_k,
+            max_tokens=max_tokens,
+            collapse_tree=collapse_tree,
+        )
 
         if return_layer_information:
+            return retrieval_payload["context"], retrieval_payload["layer_information"]
 
-            layer_information = []
-
-            for node in selected_nodes:
-                layer_information.append(
-                    {
-                        "node_index": node.index,
-                        "layer_number": self.tree_node_index_to_layer[node.index],
-                    }
-                )
-
-            return context, layer_information
-
-        return context
+        return retrieval_payload["context"]

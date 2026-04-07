@@ -1,15 +1,10 @@
 import logging
 import os
+import re
 
-from openai import OpenAI
-
-
-import getpass
 from abc import ABC, abstractmethod
 
-import torch
-from tenacity import retry, stop_after_attempt, wait_random_exponential
-from transformers import T5ForConditionalGeneration, T5Tokenizer
+from ._compat import retry, stop_after_attempt, wait_random_exponential
 
 
 class BaseQAModel(ABC):
@@ -27,6 +22,13 @@ class GPT3QAModel(BaseQAModel):
             model (str, optional): The GPT-3 model version to use for generating summaries. Defaults to "text-davinci-003".
         """
         self.model = model
+        try:
+            from openai import OpenAI
+        except ImportError as exc:
+            raise ImportError(
+                "openai is required to use GPT3QAModel. Install project requirements first."
+            ) from exc
+
         self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -69,6 +71,13 @@ class GPT3TurboQAModel(BaseQAModel):
             model (str, optional): The GPT-3 model version to use for generating summaries. Defaults to "text-davinci-003".
         """
         self.model = model
+        try:
+            from openai import OpenAI
+        except ImportError as exc:
+            raise ImportError(
+                "openai is required to use GPT3TurboQAModel. Install project requirements first."
+            ) from exc
+
         self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -96,6 +105,8 @@ class GPT3TurboQAModel(BaseQAModel):
                 },
             ],
             temperature=0,
+            max_tokens=max_tokens,
+            stop=stop_sequence,
         )
 
         return response.choices[0].message.content.strip()
@@ -121,6 +132,13 @@ class GPT4QAModel(BaseQAModel):
             model (str, optional): The GPT-3 model version to use for generating summaries. Defaults to "text-davinci-003".
         """
         self.model = model
+        try:
+            from openai import OpenAI
+        except ImportError as exc:
+            raise ImportError(
+                "openai is required to use GPT4QAModel. Install project requirements first."
+            ) from exc
+
         self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -148,6 +166,8 @@ class GPT4QAModel(BaseQAModel):
                 },
             ],
             temperature=0,
+            max_tokens=max_tokens,
+            stop=stop_sequence,
         )
 
         return response.choices[0].message.content.strip()
@@ -166,6 +186,15 @@ class GPT4QAModel(BaseQAModel):
 
 class UnifiedQAModel(BaseQAModel):
     def __init__(self, model_name="allenai/unifiedqa-v2-t5-3b-1363200"):
+        try:
+            import torch
+            from transformers import T5ForConditionalGeneration, T5Tokenizer
+        except ImportError as exc:
+            raise ImportError(
+                "torch and transformers are required to use UnifiedQAModel."
+            ) from exc
+
+        self._torch = torch
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = T5ForConditionalGeneration.from_pretrained(model_name).to(
             self.device
@@ -183,3 +212,33 @@ class UnifiedQAModel(BaseQAModel):
         input_string = question + " \\n " + context
         output = self.run_model(input_string)
         return output[0]
+
+
+class ExtractiveQAModel(BaseQAModel):
+    """
+    Local heuristic QA model that returns the most question-overlapping sentence.
+    """
+
+    def __init__(self, model_name="extractive-overlap"):
+        self.model = model_name
+
+    def answer_question(self, context, question):
+        sentences = [
+            sentence.strip()
+            for sentence in re.split(r"(?<=[.!?])\s+", context)
+            if sentence.strip()
+        ]
+
+        if not sentences:
+            return ""
+
+        question_terms = set(re.findall(r"\w+", question.lower()))
+        if not question_terms:
+            return sentences[0]
+
+        def score(sentence):
+            sentence_terms = set(re.findall(r"\w+", sentence.lower()))
+            return len(question_terms & sentence_terms), -len(sentence)
+
+        best_sentence = max(sentences, key=score)
+        return best_sentence

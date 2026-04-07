@@ -1,0 +1,43 @@
+raptor_run:
+  run_name: cinderella_local_demo
+  dataset:
+    split: demo
+    documents:
+      path: sample.txt
+      format: text
+      doc_id: cinderella
+    qa:
+      path: cinderella_qa.json
+      format: json
+      records_path: qa_entries
+      query_id_field: query_id
+      doc_id_field: doc_id
+      question_field: question
+      reference_answers_field: reference_answers
+    selection:
+      max_docs: 1
+      max_questions_per_doc: 2
+  models:
+    embedding:
+      provider: hash
+      dimension: 256
+    summarization:
+      provider: extractive
+    qa:
+      provider: extractive
+  tree_builder:
+    max_tokens: 80
+    num_layers: 3
+    threshold: 0.5
+    top_k: 5
+    selection_mode: top_k
+    summarization_length: 80
+    reduction_dimension: 3
+  retrieval:
+    top_k: 4
+    max_tokens: 512
+    collapse_tree: true
+    threshold: 0.5
+    selection_mode: top_k
+  profiling:
+    record_resource_usage: true

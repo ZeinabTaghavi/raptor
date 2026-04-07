@@ -4,13 +4,12 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 
 import numpy as np
-import tiktoken
-import umap
 from sklearn.mixture import GaussianMixture
 
 # Initialize logging
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 
+from ._compat import get_default_tokenizer
 from .tree_structures import Node
 # Import necessary methods from other modules
 from .utils import get_embeddings
@@ -28,6 +27,14 @@ def global_cluster_embeddings(
 ) -> np.ndarray:
     if n_neighbors is None:
         n_neighbors = int((len(embeddings) - 1) ** 0.5)
+    try:
+        import umap
+    except ImportError:
+        logging.warning(
+            "umap-learn is not installed. Falling back to raw embeddings for global clustering."
+        )
+        return embeddings
+
     reduced_embeddings = umap.UMAP(
         n_neighbors=n_neighbors, n_components=dim, metric=metric
     ).fit_transform(embeddings)
@@ -37,6 +44,14 @@ def global_cluster_embeddings(
 def local_cluster_embeddings(
     embeddings: np.ndarray, dim: int, num_neighbors: int = 10, metric: str = "cosine"
 ) -> np.ndarray:
+    try:
+        import umap
+    except ImportError:
+        logging.warning(
+            "umap-learn is not installed. Falling back to raw embeddings for local clustering."
+        )
+        return embeddings
+
     reduced_embeddings = umap.UMAP(
         n_neighbors=num_neighbors, n_components=dim, metric=metric
     ).fit_transform(embeddings)
@@ -134,11 +149,12 @@ class RAPTOR_Clustering(ClusteringAlgorithm):
         nodes: List[Node],
         embedding_model_name: str,
         max_length_in_cluster: int = 3500,
-        tokenizer=tiktoken.get_encoding("cl100k_base"),
+        tokenizer=None,
         reduction_dimension: int = 10,
         threshold: float = 0.1,
         verbose: bool = False,
     ) -> List[List[Node]]:
+        tokenizer = tokenizer or get_default_tokenizer()
         # Get the embeddings from the nodes
         embeddings = np.array([node.embeddings[embedding_model_name] for node in nodes])
 

@@ -1,15 +1,10 @@
 import copy
 import logging
-import os
 from abc import abstractclassmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from threading import Lock
 from typing import Dict, List, Optional, Set, Tuple
 
-import openai
-import tiktoken
-from tenacity import retry, stop_after_attempt, wait_random_exponential
-
+from ._compat import get_default_tokenizer
 from .EmbeddingModels import BaseEmbeddingModel, OpenAIEmbeddingModel
 from .SummarizationModels import (BaseSummarizationModel,
                                   GPT3TurboSummarizationModel)
@@ -36,7 +31,7 @@ class TreeBuilderConfig:
         cluster_embedding_model=None,
     ):
         if tokenizer is None:
-            tokenizer = tiktoken.get_encoding("cl100k_base")
+            tokenizer = get_default_tokenizer()
         self.tokenizer = tokenizer
 
         if max_tokens is None:

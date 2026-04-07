@@ -1,9 +1,7 @@
 import logging
-import os
 from abc import ABC, abstractmethod
 
-from openai import OpenAI
-from tenacity import retry, stop_after_attempt, wait_random_exponential
+from ._compat import retry, stop_after_attempt, wait_random_exponential
 
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 
@@ -16,13 +14,14 @@ class BaseSummarizationModel(ABC):
 
 class GPT3TurboSummarizationModel(BaseSummarizationModel):
     def __init__(self, model="gpt-3.5-turbo"):
-
         self.model = model
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
     def summarize(self, context, max_tokens=500, stop_sequence=None):
 
         try:
+            from openai import OpenAI
+
             client = OpenAI()
 
             response = client.chat.completions.create(
@@ -46,13 +45,14 @@ class GPT3TurboSummarizationModel(BaseSummarizationModel):
 
 class GPT3SummarizationModel(BaseSummarizationModel):
     def __init__(self, model="text-davinci-003"):
-
         self.model = model
 
     @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
     def summarize(self, context, max_tokens=500, stop_sequence=None):
 
         try:
+            from openai import OpenAI
+
             client = OpenAI()
 
             response = client.chat.completions.create(
@@ -72,3 +72,15 @@ class GPT3SummarizationModel(BaseSummarizationModel):
         except Exception as e:
             print(e)
             return e
+
+
+class ExtractiveSummarizationModel(BaseSummarizationModel):
+    """
+    Deterministic local summarizer that truncates to the first `max_tokens` tokens.
+    """
+
+    def summarize(self, context, max_tokens=150):
+        tokens = context.split()
+        if max_tokens is None or max_tokens <= 0:
+            return context
+        return " ".join(tokens[:max_tokens])

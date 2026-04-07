@@ -91,6 +91,97 @@ RA = RetrievalAugmentation(tree=SAVE_PATH)
 answer = RA.answer_question(question=question)
 ```
 
+## Standalone Experiment Runner
+
+This repository now includes a standalone dataset runner for producing raw RAPTOR artifacts for later evaluation in another system.
+
+Run it with:
+
+```bash
+python scripts/run_raptor_experiment.py \
+  --dataset-name <dataset_name> \
+  --default-yaml <path/to/default_experiment.yaml> \
+  --run-name <run_name>
+```
+
+The runner creates:
+
+```text
+raptor_runs/
+  <dataset_name>/
+    <run_name>/
+      config/
+      selection/
+      corpus/
+      trees/
+      retrieval/
+      rag/
+      profiling/
+      run_manifest.json
+```
+
+The saved artifacts include:
+
+- the exact copied input YAML and the fully resolved RAPTOR run config
+- selected document and QA entries
+- per-document RAPTOR trees plus tree statistics
+- leaf chunk exports and node indexes with `descendant_leaf_chunk_ids`
+- raw retrieval payloads with expanded chunk mappings
+- raw answer-generation outputs
+- build/query timings and resource snapshots when available
+
+The runner is designed for per-document retrieval scope on long-document QA datasets. It does not compute gold labels, retrieval metrics, or answer-quality metrics.
+
+### YAML Shape
+
+The runner works best when the reference YAML contains a `raptor_run:` section. It will also try to map a few common defaults such as `split`, `max_docs`, `max_questions`, `top_k`, and chunk/token settings from non-RAPTOR YAML files, and records those assumptions in `run_manifest.json`.
+
+Minimal example:
+
+```yaml
+raptor_run:
+  dataset:
+    documents:
+      path: sample.txt
+      format: text
+      doc_id: my_doc
+    qa:
+      path: qa.json
+      format: json
+      records_path: qa_entries
+      query_id_field: query_id
+      doc_id_field: doc_id
+      question_field: question
+      reference_answers_field: reference_answers
+  models:
+    embedding:
+      provider: openai
+      model: text-embedding-ada-002
+    summarization:
+      provider: openai
+      model: gpt-3.5-turbo
+    qa:
+      provider: openai
+      model: gpt-3.5-turbo
+  tree_builder:
+    max_tokens: 100
+    num_layers: 5
+  retrieval:
+    top_k: 5
+    max_tokens: 3500
+    collapse_tree: true
+```
+
+A fully local example that does not rely on OpenAI is included at `demo/cinderella_experiment.yaml`.
+
+QASPER is also wired in as a native dataset loader. The RAPTOR-specific config for the 25-document retrieval-ablation slice is at `configs/raptor/qasper_retrieval_ablation.yaml` and can be run with:
+
+```bash
+python scripts/run_raptor_experiment.py \
+  --dataset-name qasper \
+  --default-yaml configs/raptor/qasper_retrieval_ablation.yaml
+```
+
 
 ### Extending RAPTOR with other Models
 

@@ -1,0 +1,44 @@
+raptor_run:
+  run_name: qasper_retrieval_ablation_raptor
+  output_root: raptor_runs
+  dataset:
+    split: test
+    loader:
+      name: qasper
+      config_name: default
+    selection:
+      max_docs: 25
+  models:
+    embedding:
+      provider: openai
+      model: text-embedding-ada-002
+    summarization:
+      provider: openai
+      model: gpt-3.5-turbo
+    qa:
+      provider: openai
+      model: gpt-3.5-turbo
+  tree_builder:
+    max_tokens: 200
+    num_layers: 5
+    threshold: 0.5
+    top_k: 5
+    selection_mode: top_k
+    summarization_length: 150
+    reduction_dimension: 10
+  retrieval:
+    top_k: 5
+    max_tokens: 3500
+    collapse_tree: true
+    threshold: 0.5
+    selection_mode: top_k
+  generation:
+    max_tokens: 4096
+    temperature: 0.6
+    top_p: 0.95
+    stop:
+      - "[END_JSON]"
+      - "<|im_end|>"
+      - "<|endoftext|>"
+  profiling:
+    record_resource_usage: true
