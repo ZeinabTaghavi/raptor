@@ -182,11 +182,21 @@ python scripts/run_raptor_experiment.py \
   --default-yaml configs/raptor/qasper_retrieval_ablation.yaml
 ```
 
+Or via the wrapper script that defaults to GPUs `0,1`:
+
+```bash
+bash main.sh \
+  --dataset-name qasper \
+  --default-yaml configs/raptor/qasper_retrieval_ablation.yaml
+```
+
 That QASPER config is set up to avoid OpenAI dependencies by default:
 
 - embeddings use `facebook/contriever`
 - tree summarization uses a `vllm`-backed Qwen model
 - answer generation uses the same `vllm`-backed Qwen model
+- the launcher defaults `CUDA_VISIBLE_DEVICES=0,1`
+- `vllm` tensor parallelism defaults to the number of visible GPUs and is capped to that count if a YAML requests more
 
 The runner also supports `transformers`-backed local generation models if you prefer not to use `vllm`.
 

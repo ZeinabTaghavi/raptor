@@ -670,6 +670,14 @@ def _normalize_model_config(model_config: Dict[str, Any], default_provider: str,
     return normalized
 
 
+def _visible_gpu_count(default: int = 1) -> int:
+    raw_value = os.environ.get("CUDA_VISIBLE_DEVICES")
+    if not raw_value:
+        return default
+    devices = [item.strip() for item in raw_value.split(",") if item.strip()]
+    return max(1, len(devices)) if devices else default
+
+
 def _build_embedding_model(model_config: Dict[str, Any]):
     provider = model_config["provider"]
     if provider == "openai":
@@ -1100,10 +1108,10 @@ def resolve_run_config(
         default_generation_provider = "transformers"
         default_generation_model = model_id or "Qwen/Qwen2.5-7B-Instruct"
     else:
-        default_embedding_provider = "openai"
-        default_embedding_model = "text-embedding-ada-002"
-        default_generation_provider = "openai"
-        default_generation_model = "gpt-3.5-turbo"
+        default_embedding_provider = "contriever"
+        default_embedding_model = "facebook/contriever"
+        default_generation_provider = "vllm"
+        default_generation_model = "Qwen/Qwen3-30B-A3B-Instruct-2507"
 
     base_embedding_config = explicit_config.get("models", {}).get("embedding", {})
     if not base_embedding_config and default_embedding_provider in {"contriever", "transformers"}:
@@ -1171,6 +1179,27 @@ def resolve_run_config(
         default_provider=default_generation_provider,
         default_model=default_generation_model,
     )
+
+    visible_gpu_count = _visible_gpu_count(default=2)
+    for label, config_block in (
+        ("summarization", summarization_config),
+        ("qa", qa_config),
+    ):
+        if config_block.get("provider") != "vllm":
+            continue
+        requested_tp = config_block.get("tensor_parallel_size")
+        if requested_tp is None:
+            config_block["tensor_parallel_size"] = visible_gpu_count
+            mapped_fields.append(
+                f"Defaulted {label} tensor_parallel_size to {visible_gpu_count} from visible GPUs."
+            )
+            continue
+        normalized_requested_tp = int(requested_tp)
+        if normalized_requested_tp > visible_gpu_count:
+            config_block["tensor_parallel_size"] = visible_gpu_count
+            mapped_fields.append(
+                f"Capped {label} tensor_parallel_size from {normalized_requested_tp} to {visible_gpu_count} based on visible GPUs."
+            )
 
     resolved_config = {
         "dataset_loader_settings": dataset_config,
