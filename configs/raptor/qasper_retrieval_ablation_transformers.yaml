@@ -19,7 +19,7 @@ raptor_run:
       provider: transformers
       model: Qwen/Qwen3-30B-A3B-Instruct-2507
       device_map: auto
-      torch_dtype: bfloat16
+      dtype: bfloat16
       trust_remote_code: true
       temperature: 0.0
       top_p: 1.0
@@ -27,7 +27,7 @@ raptor_run:
       provider: transformers
       model: Qwen/Qwen3-30B-A3B-Instruct-2507
       device_map: auto
-      torch_dtype: bfloat16
+      dtype: bfloat16
       trust_remote_code: true
       temperature: 0.6
       top_p: 0.95

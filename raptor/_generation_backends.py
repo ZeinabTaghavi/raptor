@@ -122,7 +122,7 @@ def _vllm_engine_kwargs_to_transformers_kwargs(engine_kwargs: dict[str, Any]) ->
 
     dtype = engine_kwargs.get("dtype")
     if dtype is not None:
-        pipeline_kwargs["torch_dtype"] = dtype
+        pipeline_kwargs["dtype"] = dtype
 
     return pipeline_kwargs
 
@@ -146,12 +146,27 @@ def generate_with_transformers(
         ) from exc
 
     pipeline_kwargs = dict(pipeline_kwargs or {})
-    torch_dtype = pipeline_kwargs.get("torch_dtype", "auto")
-    if isinstance(torch_dtype, str) and torch_dtype != "auto":
-        torch_dtype = getattr(torch, torch_dtype, torch_dtype)
-    pipeline_kwargs["torch_dtype"] = torch_dtype
+
+    uses_accelerate_features = any(
+        pipeline_kwargs.get(key) is not None for key in ("device_map", "tp_plan")
+    )
+    if uses_accelerate_features:
+        try:
+            import accelerate  # noqa: F401
+        except ImportError as exc:
+            raise RuntimeError(
+                "Transformers multi-GPU loading requires the 'accelerate' package because "
+                "this config uses device_map/tp_plan. Install it in the RAPTOR environment with "
+                "`pip install accelerate`, or remove device_map to force single-device loading."
+            ) from exc
+
+    dtype = pipeline_kwargs.pop("torch_dtype", pipeline_kwargs.get("dtype", "auto"))
+    if isinstance(dtype, str) and dtype != "auto":
+        dtype = getattr(torch, dtype, dtype)
+    pipeline_kwargs["dtype"] = dtype
+
     pipeline_kwargs.setdefault("device_map", "auto")
-    pipeline_kwargs.setdefault("torch_dtype", "auto")
+    pipeline_kwargs.setdefault("dtype", "auto")
     pipeline_kwargs.setdefault("trust_remote_code", True)
     cache_key = (model_name, _freeze(pipeline_kwargs))
 

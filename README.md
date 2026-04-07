@@ -207,6 +207,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python scripts/run_raptor_experiment.py \
 ```
 
 That fallback keeps the same Qwen model and Contriever embeddings, but avoids the `vllm`/Triton compile path entirely. You can also use fewer GPUs by changing `CUDA_VISIBLE_DEVICES`; the default launcher still uses `0,1` when you do not override it.
+For multi-GPU `transformers` loading with `device_map: auto`, install `accelerate` inside the RAPTOR environment.
 
 The runner also supports `transformers`-backed local generation models if you prefer not to use `vllm`.
 

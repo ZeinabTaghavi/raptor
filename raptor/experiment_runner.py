@@ -686,6 +686,27 @@ def _visible_gpu_count(default: int = 1) -> int:
     return max(1, len(devices)) if devices else default
 
 
+def _validate_runtime_dependencies(model_config: Dict[str, Any], label: str) -> None:
+    provider = str(model_config.get("provider", "")).lower()
+    if provider not in {"transformers", "hf"}:
+        return
+
+    uses_accelerate_features = any(
+        model_config.get(key) is not None for key in ("device_map", "tp_plan")
+    )
+    if not uses_accelerate_features:
+        return
+
+    try:
+        import accelerate  # noqa: F401
+    except ImportError as exc:
+        raise RuntimeError(
+            f"The {label} model uses provider='transformers' with device_map/tp_plan, which "
+            "requires the 'accelerate' package for multi-GPU loading. Install it in the RAPTOR "
+            "environment with `pip install accelerate`, or remove device_map to force single-device loading."
+        ) from exc
+
+
 def _build_embedding_model(model_config: Dict[str, Any]):
     provider = model_config["provider"]
     if provider == "openai":
@@ -1349,6 +1370,15 @@ def run_experiment(
         run_name=run_name,
         output_root=output_root,
         resume=resume,
+    )
+
+    _validate_runtime_dependencies(
+        resolved_config["tree_builder_settings"]["summarization_model"],
+        label="summarization",
+    )
+    _validate_runtime_dependencies(
+        resolved_config["generation_settings"]["qa_model"],
+        label="qa",
     )
 
     tokenizer = get_default_tokenizer()
