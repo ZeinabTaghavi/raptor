@@ -271,6 +271,20 @@ Run the default `vllm` variant with:
 ```bash
 python scripts/run_raptor_experiment.py \
   --dataset-name quality \
+  --default-yaml configs/experiments/quality_retrieval_ablation.yaml
+```
+
+The dedicated helper script uses the same QuALITY config:
+
+```bash
+bash scripts/run_quality_experiment.sh
+```
+
+You can also call the RAPTOR-specific config path directly:
+
+```bash
+python scripts/run_raptor_experiment.py \
+  --dataset-name quality \
   --default-yaml configs/raptor/quality_retrieval_ablation.yaml
 ```
 
