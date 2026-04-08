@@ -298,6 +298,40 @@ class RetrievalAugmentation:
 
         return answer
 
+    def answer_question_with_metadata(
+        self,
+        question,
+        top_k: int = 10,
+        start_layer: int = None,
+        num_layers: int = None,
+        max_tokens: int = 3500,
+        collapse_tree: bool = True,
+    ):
+        """
+        Retrieves information, answers a question, and returns both the answer and
+        structured retrieval metadata.
+        """
+        if self.retriever is None:
+            raise ValueError(
+                "The TreeRetriever instance has not been initialized. Call 'add_documents' first."
+            )
+
+        retrieval_payload = self.retriever.retrieve_with_metadata(
+            query=question,
+            start_layer=start_layer,
+            num_layers=num_layers,
+            top_k=top_k,
+            max_tokens=max_tokens,
+            collapse_tree=collapse_tree,
+        )
+        answer = self.qa_model.answer_question(retrieval_payload["context"], question)
+
+        return {
+            "question": question,
+            "answer": answer,
+            "retrieval": retrieval_payload,
+        }
+
     def save(self, path):
         if self.tree is None:
             raise ValueError("There is no tree to save.")
