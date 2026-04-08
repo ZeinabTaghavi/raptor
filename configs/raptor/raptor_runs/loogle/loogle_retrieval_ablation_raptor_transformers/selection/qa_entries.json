@@ -1,0 +1,626 @@
+[
+  {
+    "query_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec::qa::0",
+    "doc_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec",
+    "question": "Where was Jos\u00e9 Luis Picardo born and raised?",
+    "reference_answers": [
+      "He was born in Jerez de la Frontera, in the Province of C\u00e1diz in Andaluc\u00eda, Spain. He later moved to Madrid with his family."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Picardo was born in Jerez de la Frontera, in the Province of C\u00e1diz in Andaluc\u00eda, Spain on 18 June 1919. With his mother and his brothers he moved to Madrid, Spain."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec::qa::0",
+    "doc_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec",
+    "question": "Did Jos\u00e9 Luis Picardo receive any awards or recognition for his work?",
+    "reference_answers": [
+      "No."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "On 3 February 1997, at the age of 78, Picardo was elected Academician of the Real Academia de Bellas Artes de San Fernando (Royal Academy of Fine Arts of San Fernando), being proposed by Julio Cano Lasso [es], Fernando Chueca Goitia and Luis Garc\u00eda-Ochoa Ib\u00e1\u00f1ez [es]."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec::qa::0",
+    "doc_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec",
+    "question": "What were some of the subjects that Picardo illustrated in his post-student days?",
+    "reference_answers": [
+      "Madrid in the 1950s and 1960s, the Spanish protectorate in Morocco, and sketches of the Canarias (Canary Islands) in 1953."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Particularly noted in his post-student days were illustrations portraying Madrid in the 1950s and 1960s, the Spanish protectorate in Morocco, and sketches of the Canarias (Canary Islands) in 1953."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec::qa::0",
+    "doc_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec",
+    "question": "Who did Picardo collaborate with for building preservation and restoration projects?",
+    "reference_answers": [
+      "He collaborated with Spanish architect and architectural historian Fernando Chueca Goitia."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "On qualifying in 1951,[6][7] Picardo pursued his interest in historical architecture by collaborating on a number of building preservation and restoration projects with the Spanish architect and architectural historian Fernando Chueca Goitia [es], who was 8 years his senior."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec::qa::0",
+    "doc_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec",
+    "question": "What was one of the uncommissioned buildings that Picardo designed in the 1950s?",
+    "reference_answers": [
+      "He designed a centre for the Cofrad\u00eda de Pescadores (Fishermen's Brotherhood) of Altea."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "In 1951 in company with his fellow architect Carlos de Miguel he designed a centre for the Cofrad\u00eda de Pescadores (Fishermen's Brotherhood) of Altea in the province of Alicante which attracted much attention but remained unbuilt."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec::qa::0",
+    "doc_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec",
+    "question": "How did Picardo personalize the characters in the playing cards he designed for Loewe?",
+    "reference_answers": [
+      "Picardo personalized the characters in the playing cards by portraying the King of Hearts as the Emperor Charlemagne, the King of Clubs as Goliath, the King of Diamonds as Julius Caesar, and the King of Spades as Alexander the Great."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "With much imagination he personalised the characters he portrayed, for instance rendering the King of Hearts as the Emperor Charlemagne, the King of Clubs as Goliath, the King of Diamonds as Julius Caesar and the King of Clubs as Alexander the Great."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec::qa::0",
+    "doc_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec",
+    "question": "Where did Picardo locate the main hospitality section of the Parador?",
+    "reference_answers": [
+      "Within the Colegio de Infantes."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Picardo set the main hospitality section of the Parador within the Colegio de Infantes, adding to the external south side of the cloister to provide a dining room and, above it, terraces for guest rooms facing the garden."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec::qa::0",
+    "doc_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec",
+    "question": "What did he place to the left and right of the entry?",
+    "reference_answers": [
+      "He placed the reception area to the left and the bar and cafeter\u00eda to the right."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "To the left of the entry, in the original guardhouse, he placed the reception area and to the right, where the old stables were situated, he placed the bar and cafeter\u00eda, adding one single window to each space to allow in some daylight."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec::qa::0",
+    "doc_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec",
+    "question": "How did Picardo plan the interior decoration?",
+    "reference_answers": [
+      "He planned for the ground floor to be medieval in design and the upper floors to be more palatial."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "In planning the interior decoration Picardo determined that the ground floor would be medieval in design in keeping with the original military use of the palace, and the upper floors would be more palatial in decor."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec::qa::0",
+    "doc_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec",
+    "question": "What was Picardo's involvement in the investigation of old buildings?",
+    "reference_answers": [
+      "Investigating old buildings for conversion into a new Parador."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "In 1964 Picardo was involved, with the Ministry of Information and Tourism, in investigating old buildings for conversion into a new Parador in the Province of Guadalajara."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec::qa::0",
+    "doc_id": "03c1b3e8-8aba-4a59-8a56-e24c4a2b88ec",
+    "question": "What was Picardo's approach to restoration?",
+    "reference_answers": [
+      "Picardo used modern construction techniques but concealed them with traditional materials to make the buildings look old."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Picardo had no qualms about his film set concept of restoration, using modern construction techniques and concealing them with traditional materials, as long as the buildings looked old rather than modern."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "What belief did Iqbal adopt after returning from Europe?",
+    "reference_answers": [
+      "Pan-Islamism."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "When he came back from Europe, he had already given up pan-Indian nationalism and adopted the cult of Pan-Islamism: from now onward started believing in one Muslim Ummah."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "What did Iqbal criticize about nationalism?",
+    "reference_answers": [
+      "Its divisive influence and the barriers it created between people and nations."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Zafar Ishaq Ansari writes that Iqbal observed that how \u201cnationalism had destroyed the idea of universal brotherhood; how it had created barriers between man and man and between nation and nation; how it had sown seeds of international discords."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "According to Iqbal, what was the unifying factor for the ummah?",
+    "reference_answers": [
+      "Religion."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "For Iqbal religion was a unifying and central factor to politics and society of ummah."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "What does Iqbal appreciate about communism?",
+    "reference_answers": [
+      "Stand on equality, labor rights, and exploitative economic order of capitalism."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Iqbal appreciates communism for its stand on the equality, principle, labor rights and exploitative economic order of capitalism, but, in the words of Parveen Feroz, it is the \u2018Godlessness\u2019 of the communist doctrine which infuriated Iqbal."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "What is Iqbal's view on western democracy?",
+    "reference_answers": [
+      "Iqbal criticizes western democracy, referring to it as the same old European Caesarism or imperialism. He believes that it only protects the interests of capitalists and opposes the philosophy of 'one man, one vote'. He favors decisions made by wise individuals."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "How Iqbal views western democracy? Waheed Ishrat has deducted Iqbal's criticism of democracy from his poetry as following: The Western democratic system is the same old European Caesarism or imperialism. The Western democracies only protect the interest of capitalists. He was against the philosophy of one's man one's vote. He believed that majority of the common people cannot be equal to wise man. He was in favor of wise man decision. The democratic institutions such as election, membership, council, and president ship etc. are the rotten eggs of the new civilization."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "What factors weaken Khudi according to Iqbal?",
+    "reference_answers": [
+      "According to Iqbal, fear, beggary, and slavery weaken Khudi."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Similarly, some factors also weaken it like fear, beggary, and slavery."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "What are the pivotal concepts in Iqbal's political philosophy?",
+    "reference_answers": [
+      "The pivotal concepts in Iqbal's political philosophy are Tawhid (Oneness of God and prophet hood of Muhammad), Khudi (ego), Mumin (The Perfect Man), Millat (The Community, individual and community relationship), and Ijtihad (parliament spiritual democracy)."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "His assumptions of Tawhid (Oneness of God and the prophet hood of Muhammad), Khudi (ego), Mumin (The Perfect Man), Millat (The Community, individual and community relationship), and Ijtihad (parliament spiritual democracy) are pivotal to his political philosophy."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "What is Iqbal's concept of a momin based on?",
+    "reference_answers": [
+      "The Quran"
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "The concept of momin in Iqbal is also based on the Quran, which is a major inspirational source for his views."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "How does Iqbal define the concept of millat?",
+    "reference_answers": [
+      "A universal community of Believers transcending barriers of caste, color, race, nationality, and territory"
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Iqbal's millat is a universal community of Believers, transcending all barriers of caste, color, race, nationality, and territory."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "What does he advocate for the community?",
+    "reference_answers": [
+      "The community must live a life of constant struggle and ceaseless endeavour."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "He advocates like an individual the community must live a life of constant struggle and ceaseless endeavour."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "What is the consequence of complete focus on political authority?",
+    "reference_answers": [
+      "Lessening the worth of religious values."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Moreover, political authority is completely a worldly accomplishment that could be regard as worldly benefit, and the complete focus on it will result in lessening the worth of religious values."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5::qa::0",
+    "doc_id": "5984f759-6d02-4c94-858c-b4ca561ca5e5",
+    "question": "Who were the leaders of the second and third groups in the Muslim League?",
+    "reference_answers": [
+      "Muhammad Ali Jinnah and the Raja of Mahmudabad led the second group, while Sir Mohammad Shafi and his followers led the third group."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "The second group headed by Muhammad Ali Jinnah and the Raja of Mahmudabad and the third group consisted of Sir Mohammad Shafi and his followers who wanted to reject the Nehru Report completely."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What is the situation of police brutality in South Africa?",
+    "reference_answers": [
+      "South African police are commonly accused of excessive force, with ten deaths attributed to police the same year (2020)."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "South African police are commonly accused of excessive force, with ten deaths attributed to police the same year (2020)."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What is the name of the national police watchdog in Belgium?",
+    "reference_answers": [
+      "Committee P."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Belgian judicial authorities were found to also have failed to notify national police watchdog, Committee P, of criminal convictions against police, which is both a direct breach of Belgian judicial procedure and a failure to comply with Article 40 of the International Covenant on Civil and Political Rights."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What was the cause of the yellow vests protests in France?",
+    "reference_answers": [
+      "An increased fuel tax made by President Emmanuel Macron."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "France's yellow vests protests began against an increased fuel tax made by President Emmanuel Macron."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What is the reason behind police brutality in Northern Ireland?",
+    "reference_answers": [
+      "Unsavoury police procedures used during the Troubles to obtain admissions of guilt."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Police brutality has been a long-standing issue in Northern Ireland due to unsavoury police procedures used during the Troubles to obtain admissions of guilt."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "Which minority group is most targeted by police brutality in Slovakia?",
+    "reference_answers": [
+      "The Romani minority."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Police brutality in Slovakia is systematic and widely documented, but is almost exclusively enacted on the Romani minority."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What was the decision made by the Supreme Court in Brazil regarding police operations?",
+    "reference_answers": [
+      "The Supreme Court in Brazil decided to only authorize police operations in 'absolutely exceptional' cases that needed to be justified for the Public Ministry of the State of Rio de Janeiro, and prohibited using helicopters as a platform for shooting and terror, conducting operations near schools and hospitals, and using them as police operational bases."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Afterward, the Court unanimously voted to maintain the decision, which would only authorize operations in 'absolutely exceptional' cases that needed to be justified for the Public Ministry of the State of Rio de Janeiro. The Supreme Court also stated that in case of authorized operations in the pandemic, 'Exceptional care should be taken, duly identified in writing by the competent authority, so as not to put in risk population' provision of public health services and the humanitarian aid activities.' Even after the pandemic, it has prohibited using helicopters as a platform for shooting and terror, conducting operations near schools and hospitals, and using them as police operational bases."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What did human rights organizations say about the handling of protests by Venezuelan authorities?",
+    "reference_answers": [
+      "Human rights organizations condemned the Venezuelan government for its handling of protests, with methods ranging from the use of rubber pellets and tear gas to instances of live ammunition and torture of arrested protestors, according to organizations like Amnesty International and Human Rights Watch."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "During the 2014 Venezuelan protests, multiple human rights organizations condemned the Venezuelan government for its handling of the protests as security forces had reportedly gone beyond typical practices of handling protests, with methods ranging from the use of rubber pellets and tear gas to instances of live ammunition and torture of arrested protestors, according to organizations like Amnesty International and Human Rights Watch."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "Which country has seen incidents of police brutality skyrocket by 312% from 2011 to 2012?",
+    "reference_answers": [
+      "South Africa."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "South Africa See also: Marikana killings Incidents of police brutality skyrocketed by 312% from 2011 to 2012 compared to 2001 to 2002, with only 1 in 100 cases leading to a conviction."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "Who was killed in Soweto by police officers?",
+    "reference_answers": [
+      "Nathaniel Julius."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Nathaniel Julius was killed in Soweto by police officers from the El Dorado police station."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What happened during the 2014 Hong Kong protests?",
+    "reference_answers": [
+      "Instances of police brutality occurred."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "During the 2014 Hong Kong protests, there were numerous instances of police brutality."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What happened to protestors and activists during India's independence struggle?",
+    "reference_answers": [
+      "They were subject to Lathi charges and shootings."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "During India's independence struggle, protestors and activists were subject to Lathi charges and shootings."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What happened in Bahrain during the Arab Spring?",
+    "reference_answers": [
+      "Police and military personnel manhandled and shot dead protesters."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "In Bahrain, police and military personnel manhandled and shot dead many Arab Spring protesters."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "When did Turkey experience a history of police brutality?",
+    "reference_answers": [
+      "Between 1977 and 2002."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "Turkey has a history of police brutality, including the use of torture particularly between 1977 and 2002."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What is the association made in Vienna regarding African migrants?",
+    "reference_answers": [
+      "An association between Vienna's drug problem and African migrants."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "In Vienna, there is an association made between Vienna's drug problem and the city's African migrants, which have led to African migrants being racially profiled."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What happened to Mehdi in 2019?",
+    "reference_answers": [
+      "Mehdi was run over by a police car on patrol."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "In 2019, Mehdi, 17-year-old Moroccan boy was run over by a police car on patrol."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  },
+  {
+    "query_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca::qa::0",
+    "doc_id": "96e6d71f-b8ee-4414-b62b-b83d5594ffca",
+    "question": "What did the European Court of Human Rights find regarding Croatian police authorities?",
+    "reference_answers": [
+      "Croatian police authorities have failed to fulfill their obligations under Article 3 of the European Convention on Human Rights and Fundamental Freedoms."
+    ],
+    "metadata": {
+      "retrieval_spans": [
+        "The European Court of Human Rights has found that Croatian police authorities have failed to fulfill their obligations, on numerous occasions, under Article 3 of the European Convention on Human Rights and Fundamental Freedoms by failing to carry out effective investigations to protect its citizens and tourists from violent attacks."
+      ],
+      "dataset_name": "bigai-nlco/LooGLE",
+      "config_name": "default",
+      "split": "test"
+    }
+  }
+]

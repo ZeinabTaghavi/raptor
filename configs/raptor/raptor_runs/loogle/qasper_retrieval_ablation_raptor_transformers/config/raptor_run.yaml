@@ -1,0 +1,104 @@
+dataset_loader_settings:
+  name: loogle
+  split: test
+  loader:
+    name: qasper
+    config_name: default
+  documents:
+    path: null
+    format: null
+    records_path: null
+    id_field: doc_id
+    text_field: text
+    split_field: null
+    doc_id: null
+  qa:
+    path: null
+    format: null
+    records_path: null
+    query_id_field: query_id
+    doc_id_field: doc_id
+    question_field: question
+    reference_answers_field: reference_answers
+    split_field: null
+  combined:
+    path: null
+    format: null
+    records_path: null
+    doc_id_field: doc_id
+    text_field: text
+    qa_field: qa_entries
+    qa_query_id_field: query_id
+    qa_question_field: question
+    qa_reference_answers_field: reference_answers
+    split_field: null
+  selection:
+    doc_ids: []
+    query_ids: []
+    max_docs: 25
+    max_questions: null
+    max_questions_per_doc: null
+  per_document_retrieval: true
+llm_model: &id001
+  provider: transformers
+  model: Qwen/Qwen3-30B-A3B-Instruct-2507
+  device_map: auto
+  dtype: bfloat16
+  trust_remote_code: true
+  temperature: 0.6
+  top_p: 0.95
+  stop:
+  - '[END_JSON]'
+  - <|im_end|>
+  - <|endoftext|>
+embedding_model:
+  provider: contriever
+  model: facebook/contriever
+  pooling: mean
+  normalize: true
+  trust_remote_code: true
+tree_builder_settings:
+  builder_type: cluster
+  max_tokens: 200
+  num_layers: 5
+  threshold: 0.5
+  top_k: 5
+  selection_mode: top_k
+  summarization_length: 150
+  reduction_dimension: 10
+  clustering_params: {}
+  summarization_model:
+    provider: transformers
+    model: Qwen/Qwen3-30B-A3B-Instruct-2507
+    device_map: auto
+    dtype: bfloat16
+    trust_remote_code: true
+    temperature: 0.0
+    top_p: 1.0
+retrieval_settings:
+  start_layer: null
+  num_layers: null
+  top_k: 5
+  max_tokens: 3500
+  collapse_tree: true
+  threshold: 0.5
+  selection_mode: top_k
+generation_settings:
+  qa_model: *id001
+  prompt_template_name: null
+  max_tokens: 4096
+  temperature: 0.6
+  top_p: 0.95
+  stop:
+  - '[END_JSON]'
+  - <|im_end|>
+  - <|endoftext|>
+profiling_settings:
+  record_resource_usage: true
+run_settings:
+  dataset_name: loogle
+  run_name: qasper_retrieval_ablation_raptor_transformers
+  output_root: /home/iataghav/raptor/configs/raptor/raptor_runs
+  resume: false
+  default_experiment_yaml: /home/iataghav/raptor/configs/raptor/qasper_retrieval_ablation_transformers.yaml
+mapping_notes: []
