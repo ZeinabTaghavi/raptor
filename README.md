@@ -194,7 +194,7 @@ That QASPER config is set up to avoid OpenAI dependencies by default:
 
 - embeddings use `facebook/contriever`
 - tree summarization uses `Qwen/Qwen2-0.5B-Instruct`
-- answer generation uses the same `Qwen/Qwen2-0.5B-Instruct` model
+- answer generation uses the same `Qwen/Qwen2-0.5B-Instruct` model 
 
 The runner also supports `transformers`-backed local generation models if you prefer not to use `vllm`.
 
