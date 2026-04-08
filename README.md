@@ -304,6 +304,27 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python scripts/run_raptor_experiment.py \
   --default-yaml configs/raptor/quality_retrieval_ablation_transformers.yaml
 ```
 
+NovelHopQA is supported through the same unified dataset-loader path, with whole-book loading from an external corpus root. The RAPTOR-specific configs are:
+
+- `configs/experiments/novelhopqa_retrieval_ablation.yaml`
+- `configs/raptor/novelhopqa_retrieval_ablation.yaml`
+
+The default config expects the sibling corpus directory at `../passing_meta_tag/novelhopqa/book-corpus-root` and stores outputs under `raptor_runs/novelhopqa/...`.
+
+Run it with:
+
+```bash
+python scripts/run_raptor_experiment.py \
+  --dataset-name novelhopqa \
+  --default-yaml configs/experiments/novelhopqa_retrieval_ablation.yaml
+```
+
+Or with the helper:
+
+```bash
+bash scripts/run_novelhopqa_experiment.sh
+```
+
 
 ### Extending RAPTOR with other Models
 

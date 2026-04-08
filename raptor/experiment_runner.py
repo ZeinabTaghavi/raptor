@@ -909,6 +909,15 @@ def resolve_run_config(
             f"Mapped dataset loader config_name from {dataset_loader_config_path}."
         )
 
+    dataset_books_root, dataset_books_root_path = _first_present(
+        raw_reference,
+        ["dataset.loader.books_root", "dataset.books_root"],
+    )
+    if dataset_books_root_path:
+        mapped_fields.append(
+            f"Mapped dataset loader books_root from {dataset_books_root_path}."
+        )
+
     generation_max_tokens, generation_max_tokens_path = _first_present(
         raw_reference,
         ["generation.max_tokens", "model.generate.max_tokens"],
@@ -1084,19 +1093,38 @@ def resolve_run_config(
             "tasksource/quality",
         }:
             normalized_loader_name = "quality"
+        elif lowered_dataset_source in {
+            "novelhopqa",
+            "abhaygupta1266/novelhopqa",
+        }:
+            normalized_loader_name = "novelhopqa"
         elif lowered_dataset_source not in {"", "files"}:
             normalized_loader_name = lowered_dataset_source
+
+    explicit_loader_config = dict(explicit_config.get("dataset", {}).get("loader", {}) or {})
+    loader_settings = {
+        key: value
+        for key, value in explicit_loader_config.items()
+        if key not in {"name", "config_name", "books_root", "report_dir"} and value is not None
+    }
+    explicit_or_mapped_books_root = explicit_loader_config.get("books_root", dataset_books_root)
+    if explicit_or_mapped_books_root is not None:
+        loader_settings["books_root"] = _resolve_path(
+            yaml_path.parent, str(explicit_or_mapped_books_root)
+        )
+    explicit_report_dir = explicit_loader_config.get("report_dir")
+    if explicit_report_dir is not None:
+        loader_settings["report_dir"] = _resolve_path(
+            yaml_path.parent, str(explicit_report_dir)
+        )
 
     dataset_config = {
         "name": dataset_name,
         "split": explicit_config.get("dataset", {}).get("split", dataset_split),
         "loader": {
-            "name": explicit_config.get("dataset", {}).get("loader", {}).get(
-                "name", normalized_loader_name
-            ),
-            "config_name": explicit_config.get("dataset", {}).get("loader", {}).get(
-                "config_name", dataset_loader_config_name
-            ),
+            "name": explicit_loader_config.get("name", normalized_loader_name),
+            "config_name": explicit_loader_config.get("config_name", dataset_loader_config_name),
+            **loader_settings,
         },
         "documents": {
             "path": _resolve_path(
