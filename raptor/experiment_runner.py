@@ -670,20 +670,20 @@ def _normalize_model_config(model_config: Dict[str, Any], default_provider: str,
     return normalized
 
 
-def _visible_gpu_count(default: int = 1) -> int:
-    raw_value = os.environ.get("CUDA_VISIBLE_DEVICES")
-    if not raw_value:
-        try:
-            import torch
+def _build_vllm_engine_kwargs(
+    model_config: Dict[str, Any], *, excluded_keys: Sequence[str]
+) -> Dict[str, Any]:
+    engine_kwargs = {
+        key: value
+        for key, value in model_config.items()
+        if key not in set(excluded_keys) | {"vllm_kwargs"}
+    }
 
-            detected = int(torch.cuda.device_count())
-            if detected > 0:
-                return detected
-        except Exception:
-            pass
-        return default
-    devices = [item.strip() for item in raw_value.split(",") if item.strip()]
-    return max(1, len(devices)) if devices else default
+    extra_kwargs = model_config.get("vllm_kwargs", {}) or {}
+    if isinstance(extra_kwargs, dict):
+        engine_kwargs.update(extra_kwargs)
+
+    return engine_kwargs
 
 
 def _validate_runtime_dependencies(model_config: Dict[str, Any], label: str) -> None:
@@ -740,19 +740,25 @@ def _build_summarization_model(model_config: Dict[str, Any]):
             return GPT3SummarizationModel(model=model_name)
         return GPT3TurboSummarizationModel(model=model_name)
     if provider in {"transformers", "hf"}:
-        raise ValueError(
-            "Transformers summarization is disabled for this RAPTOR setup. "
-            "Use provider='vllm' for the summarization model."
+        return TransformersSummarizationModel(
+            model_name=model_config["model"],
+            pipeline_kwargs={
+                key: value
+                for key, value in model_config.items()
+                if key
+                not in {"provider", "model", "temperature", "top_p", "stop"}
+            },
+            temperature=float(model_config.get("temperature", 0.0)),
+            top_p=float(model_config.get("top_p", 1.0)),
+            stop=model_config.get("stop"),
         )
     if provider == "vllm":
         return VLLMSummarizationModel(
             model_name=model_config["model"],
-            engine_kwargs={
-                key: value
-                for key, value in model_config.items()
-                if key
-                not in {"provider", "model", "temperature", "top_p", "stop", "device"}
-            },
+            engine_kwargs=_build_vllm_engine_kwargs(
+                model_config,
+                excluded_keys={"provider", "model", "temperature", "top_p", "stop", "device"},
+            ),
             temperature=float(model_config.get("temperature", 0.0)),
             top_p=float(model_config.get("top_p", 1.0)),
             stop=model_config.get("stop"),
@@ -770,14 +776,9 @@ def _build_qa_model(model_config: Dict[str, Any]):
             return GPT4QAModel(model=model_name)
         return GPT3TurboQAModel(model=model_name)
     if provider in {"transformers", "hf"}:
-        raise ValueError(
-            "Transformers QA is disabled for this RAPTOR setup. "
-            "Use provider='vllm' for the QA model."
-        )
-    if provider == "vllm":
-        return VLLMQAModel(
+        return TransformersQAModel(
             model_name=model_config["model"],
-            engine_kwargs={
+            pipeline_kwargs={
                 key: value
                 for key, value in model_config.items()
                 if key
@@ -788,9 +789,28 @@ def _build_qa_model(model_config: Dict[str, Any]):
                     "temperature",
                     "top_p",
                     "stop",
-                    "device",
                 }
             },
+            default_max_tokens=int(model_config.get("default_max_tokens", 256)),
+            temperature=float(model_config.get("temperature", 0.0)),
+            top_p=float(model_config.get("top_p", 1.0)),
+            stop=model_config.get("stop"),
+        )
+    if provider == "vllm":
+        return VLLMQAModel(
+            model_name=model_config["model"],
+            engine_kwargs=_build_vllm_engine_kwargs(
+                model_config,
+                excluded_keys={
+                    "provider",
+                    "model",
+                    "default_max_tokens",
+                    "temperature",
+                    "top_p",
+                    "stop",
+                    "device",
+                },
+            ),
             default_max_tokens=int(model_config.get("default_max_tokens", 256)),
             temperature=float(model_config.get("temperature", 0.0)),
             top_p=float(model_config.get("top_p", 1.0)),
@@ -974,6 +994,33 @@ def resolve_run_config(
             f"Mapped trust_remote_code from {model_trust_remote_code_path}."
         )
 
+    model_max_model_len, model_max_model_len_path = _first_present(
+        raw_reference,
+        ["models.qa.max_model_len", "model.max_model_len"],
+    )
+    if model_max_model_len_path:
+        mapped_fields.append(
+            f"Mapped max_model_len from {model_max_model_len_path}."
+        )
+
+    model_enforce_eager, model_enforce_eager_path = _first_present(
+        raw_reference,
+        ["models.qa.enforce_eager", "model.enforce_eager"],
+    )
+    if model_enforce_eager_path:
+        mapped_fields.append(
+            f"Mapped enforce_eager from {model_enforce_eager_path}."
+        )
+
+    model_vllm_max_num_seqs, model_vllm_max_num_seqs_path = _first_present(
+        raw_reference,
+        ["models.qa.vllm_kwargs.max_num_seqs", "model.vllm_kwargs.max_num_seqs"],
+    )
+    if model_vllm_max_num_seqs_path:
+        mapped_fields.append(
+            f"Mapped vllm_kwargs.max_num_seqs from {model_vllm_max_num_seqs_path}."
+        )
+
     documents_path, documents_path_source = _first_present(
         raw_reference,
         [
@@ -1124,11 +1171,16 @@ def resolve_run_config(
         default_embedding_model = "facebook/contriever"
         default_generation_provider = "vllm"
         default_generation_model = model_id or "Qwen/Qwen2-0.5B-Instruct"
-    else:
+    elif inferred_backend in {"transformers", "hf"}:
         default_embedding_provider = "contriever"
         default_embedding_model = "facebook/contriever"
-        default_generation_provider = "vllm"
-        default_generation_model = "Qwen/Qwen2-0.5B-Instruct"
+        default_generation_provider = "transformers"
+        default_generation_model = model_id or "Qwen/Qwen2.5-7B-Instruct"
+    else:
+        default_embedding_provider = "openai"
+        default_embedding_model = "text-embedding-ada-002"
+        default_generation_provider = "openai"
+        default_generation_model = "gpt-3.5-turbo"
 
     base_embedding_config = explicit_config.get("models", {}).get("embedding", {})
     if not base_embedding_config and default_embedding_provider in {"contriever", "transformers"}:
@@ -1142,13 +1194,13 @@ def resolve_run_config(
 
     base_summarization_config = explicit_config.get("models", {}).get("summarization", {})
     base_qa_config = explicit_config.get("models", {}).get("qa", {})
-    if not base_summarization_config and inferred_backend in {"vllm"}:
+    if not base_summarization_config and inferred_backend in {"vllm", "transformers", "hf"}:
         base_summarization_config = {
             "provider": default_generation_provider,
             "model": default_generation_model,
             "trust_remote_code": True if model_trust_remote_code is None else model_trust_remote_code,
         }
-    if not base_qa_config and inferred_backend in {"vllm"}:
+    if not base_qa_config and inferred_backend in {"vllm", "transformers", "hf"}:
         base_qa_config = {
             "provider": default_generation_provider,
             "model": default_generation_model,
@@ -1166,6 +1218,16 @@ def resolve_run_config(
             config_block.setdefault(
                 "gpu_memory_utilization", model_gpu_memory_utilization
             )
+        if model_max_model_len is not None:
+            config_block.setdefault("max_model_len", model_max_model_len)
+        if model_enforce_eager is not None:
+            config_block.setdefault("enforce_eager", model_enforce_eager)
+        if model_vllm_max_num_seqs is not None:
+            vllm_kwargs = config_block.setdefault("vllm_kwargs", {})
+            if not isinstance(vllm_kwargs, dict):
+                vllm_kwargs = {}
+                config_block["vllm_kwargs"] = vllm_kwargs
+            vllm_kwargs.setdefault("max_num_seqs", model_vllm_max_num_seqs)
         if model_device is not None and config_block.get("provider") != "vllm":
             config_block.setdefault("device", model_device)
 
@@ -1196,27 +1258,6 @@ def resolve_run_config(
         default_provider=default_generation_provider,
         default_model=default_generation_model,
     )
-
-    visible_gpu_count = _visible_gpu_count(default=1)
-    for label, config_block in (
-        ("summarization", summarization_config),
-        ("qa", qa_config),
-    ):
-        if config_block.get("provider") != "vllm":
-            continue
-        requested_tp = config_block.get("tensor_parallel_size")
-        if requested_tp is None:
-            config_block["tensor_parallel_size"] = visible_gpu_count
-            mapped_fields.append(
-                f"Defaulted {label} tensor_parallel_size to {visible_gpu_count} from visible GPUs."
-            )
-            continue
-        normalized_requested_tp = int(requested_tp)
-        if normalized_requested_tp > visible_gpu_count:
-            config_block["tensor_parallel_size"] = visible_gpu_count
-            mapped_fields.append(
-                f"Capped {label} tensor_parallel_size from {normalized_requested_tp} to {visible_gpu_count} based on visible GPUs."
-            )
 
     resolved_config = {
         "dataset_loader_settings": dataset_config,
