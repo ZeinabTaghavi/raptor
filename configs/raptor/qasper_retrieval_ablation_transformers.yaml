@@ -17,7 +17,7 @@ raptor_run:
       trust_remote_code: true
     summarization:
       provider: transformers
-      model: Qwen/Qwen3-30B-A3B-Instruct-2507
+      model: Qwen/Qwen2-0.5B-Instruct
       device_map: auto
       dtype: bfloat16
       trust_remote_code: true
@@ -25,7 +25,7 @@ raptor_run:
       top_p: 1.0
     qa:
       provider: transformers
-      model: Qwen/Qwen3-30B-A3B-Instruct-2507
+      model: Qwen/Qwen2-0.5B-Instruct
       device_map: auto
       dtype: bfloat16
       trust_remote_code: true

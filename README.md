@@ -193,23 +193,8 @@ bash main.sh \
 That QASPER config is set up to avoid OpenAI dependencies by default:
 
 - embeddings use `facebook/contriever`
-- tree summarization uses a `vllm`-backed Qwen model
-- answer generation uses the same `vllm`-backed Qwen model
-- the launcher defaults `CUDA_VISIBLE_DEVICES=0,1`
-- `vllm` tensor parallelism defaults to the number of visible GPUs and is capped to that count if a YAML requests more
-
-The current `vllm` path is strict: if `vllm` cannot initialize or generate, the run now fails instead of silently falling back to `transformers`. When using the `vllm` configs, you should see an `Initializing vLLM engine...` log message during startup.
-
-If you do not have admin access and `vllm` fails on Triton or missing `Python.h`, use the `transformers` fallback config instead:
-
-```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3 python scripts/run_raptor_experiment.py \
-  --dataset-name qasper \
-  --default-yaml configs/raptor/qasper_retrieval_ablation_transformers.yaml
-```
-
-That fallback keeps the same Qwen model and Contriever embeddings, but avoids the `vllm`/Triton compile path entirely. You can also use fewer GPUs by changing `CUDA_VISIBLE_DEVICES`; the default launcher still uses `0,1` when you do not override it.
-For multi-GPU `transformers` loading with `device_map: auto`, install `accelerate` inside the RAPTOR environment.
+- tree summarization uses `Qwen/Qwen2-0.5B-Instruct`
+- answer generation uses the same `Qwen/Qwen2-0.5B-Instruct` model
 
 The runner also supports `transformers`-backed local generation models if you prefer not to use `vllm`.
 

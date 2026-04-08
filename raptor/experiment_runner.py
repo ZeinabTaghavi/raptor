@@ -1147,12 +1147,12 @@ def resolve_run_config(
         default_embedding_provider = "contriever"
         default_embedding_model = "facebook/contriever"
         default_generation_provider = "vllm"
-        default_generation_model = model_id or "Qwen/Qwen3-30B-A3B-Instruct-2507"
+        default_generation_model = model_id or "Qwen/Qwen2-0.5B-Instruct"
     elif inferred_backend in {"transformers", "hf"}:
         default_embedding_provider = "contriever"
         default_embedding_model = "facebook/contriever"
         default_generation_provider = "transformers"
-        default_generation_model = model_id or "Qwen/Qwen2.5-7B-Instruct"
+        default_generation_model = model_id or "Qwen/Qwen2-0.5B-Instruct"
     else:
         default_embedding_provider = "contriever"
         default_embedding_model = "facebook/contriever"
