@@ -34,8 +34,8 @@ raptor_run:
       dtype: bfloat16
       gpu_memory_utilization: 0.9
       trust_remote_code: true
-      temperature: 0.2
-      top_p: 0.95
+      temperature: 0.0
+      top_p: 1.0
       stop:
         - "[END_JSON]"
         - "<|im_end|>"
@@ -56,8 +56,8 @@ raptor_run:
     selection_mode: top_k
   generation:
     max_tokens: 256
-    temperature: 0.2
-    top_p: 0.95
+    temperature: 0.0
+    top_p: 1.0
     stop:
       - "[END_JSON]"
       - "<|im_end|>"

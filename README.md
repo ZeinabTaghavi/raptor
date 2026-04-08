@@ -104,6 +104,14 @@ python scripts/run_raptor_experiment.py \
   --run-name <run_name>
 ```
 
+The top-level wrapper now runs the full dataset sweep sequentially when called with no arguments:
+
+```bash
+bash main.sh
+```
+
+By default it runs `qasper`, `loogle`, `narrativeqa`, `quality`, and `novelhopqa` in that order. You can override the sweep with `RAPTOR_DATASETS_CSV=qasper,quality`, or pass normal CLI flags to `main.sh` to run a single experiment.
+
 The runner creates:
 
 ```text
