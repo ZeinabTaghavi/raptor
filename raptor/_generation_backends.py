@@ -142,27 +142,22 @@ def generate_with_transformers(
         ) from exc
 
     pipeline_kwargs = dict(pipeline_kwargs or {})
-
-    uses_accelerate_features = any(
-        pipeline_kwargs.get(key) is not None for key in ("device_map", "tp_plan")
-    )
-    if uses_accelerate_features:
-        try:
-            import accelerate  # noqa: F401
-        except ImportError as exc:
-            raise RuntimeError(
-                "Transformers multi-GPU loading requires the 'accelerate' package because "
-                "this config uses device_map/tp_plan. Install it in the RAPTOR environment with "
-                "`pip install accelerate`, or remove device_map to force single-device loading."
-            ) from exc
-
-    dtype = pipeline_kwargs.pop("torch_dtype", pipeline_kwargs.get("dtype", "auto"))
+    dtype = pipeline_kwargs.pop("torch_dtype", pipeline_kwargs.pop("dtype", "auto"))
     if isinstance(dtype, str) and dtype != "auto":
         dtype = getattr(torch, dtype, dtype)
     pipeline_kwargs["dtype"] = dtype
 
-    pipeline_kwargs.setdefault("device_map", "auto")
-    pipeline_kwargs.setdefault("dtype", "auto")
+    if "device_map" in pipeline_kwargs:
+        try:
+            import accelerate  # noqa: F401
+        except ImportError as exc:
+            raise RuntimeError(
+                "Transformers multi-GPU loading requires the 'accelerate' package when "
+                "device_map is set. Install it with `pip install accelerate`, or use "
+                "`device: 0` for a single-GPU run."
+            ) from exc
+    elif "device" not in pipeline_kwargs:
+        pipeline_kwargs["device"] = 0 if torch.cuda.is_available() else -1
     pipeline_kwargs.setdefault("trust_remote_code", True)
     cache_key = (model_name, _freeze(pipeline_kwargs))
 
