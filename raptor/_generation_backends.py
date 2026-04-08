@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import Any
 
 
@@ -30,6 +31,103 @@ def trim_at_stop(text: str, stop):
     return output.strip()
 
 
+def _coerce_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
+
+def _infer_tensor_parallel_size() -> int | None:
+    for env_name in (
+        "RAPTOR_TENSOR_PARALLEL_SIZE",
+        "SAADI_TENSOR_PARALLEL_SIZE",
+        "TENSOR_PARALLEL_SIZE",
+    ):
+        raw = str(os.getenv(env_name, "")).strip()
+        if raw:
+            return int(raw)
+
+    cuda_visible = os.getenv("CUDA_VISIBLE_DEVICES")
+    if cuda_visible is None:
+        return None
+
+    raw = str(cuda_visible).strip()
+    if not raw or raw == "-1":
+        return None
+
+    parts = [part.strip() for part in raw.split(",") if part.strip()]
+    if not parts:
+        return None
+
+    return max(1, len(parts))
+
+
+def _normalize_vllm_engine_kwargs(engine_kwargs: dict[str, Any] | None = None):
+    normalized = dict(engine_kwargs or {})
+    extra_kwargs = normalized.pop("vllm_kwargs", None)
+    if isinstance(extra_kwargs, dict):
+        normalized.update(extra_kwargs)
+
+    normalized.setdefault("trust_remote_code", True)
+    os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
+
+    if normalized.get("tensor_parallel_size") is None:
+        inferred = _infer_tensor_parallel_size()
+        if inferred is not None:
+            normalized["tensor_parallel_size"] = inferred
+    elif normalized.get("tensor_parallel_size") is not None:
+        normalized["tensor_parallel_size"] = int(normalized["tensor_parallel_size"])
+
+    if normalized.get("gpu_memory_utilization") is not None:
+        normalized["gpu_memory_utilization"] = float(
+            normalized["gpu_memory_utilization"]
+        )
+
+    if normalized.get("max_model_len") is not None:
+        normalized["max_model_len"] = int(normalized["max_model_len"])
+
+    if normalized.get("enforce_eager") is not None:
+        normalized["enforce_eager"] = _coerce_bool(normalized["enforce_eager"])
+
+    return normalized
+
+
+def _get_or_create_vllm_llm(
+    *, model_name: str, engine_kwargs: dict[str, Any] | None = None
+):
+    try:
+        from vllm import LLM
+    except ImportError as exc:
+        raise ImportError(
+            "vllm is required for provider='vllm'. Install it in the RAPTOR environment."
+        ) from exc
+
+    normalized_kwargs = _normalize_vllm_engine_kwargs(engine_kwargs)
+    cache_key = (model_name, _freeze(normalized_kwargs))
+    llm = _VLLM_CACHE.get(cache_key)
+    if llm is not None:
+        return llm
+
+    try:
+        llm = LLM(model=model_name, **normalized_kwargs)
+    except Exception as exc:
+        raise RuntimeError(
+            f"vLLM failed to initialize for model '{model_name}'. "
+            f"engine_kwargs={normalized_kwargs}. "
+            f"CUDA_VISIBLE_DEVICES={os.getenv('CUDA_VISIBLE_DEVICES')!r}. "
+            "Check tensor_parallel_size, gpu_memory_utilization, dtype, and whether other models already occupy GPU memory."
+        ) from exc
+
+    _VLLM_CACHE[cache_key] = llm
+    return llm
+
+
+def warm_vllm_engine(*, model_name: str, engine_kwargs: dict[str, Any] | None = None):
+    _get_or_create_vllm_llm(model_name=model_name, engine_kwargs=engine_kwargs)
+
+
 def generate_with_vllm(
     *,
     model_name: str,
@@ -41,20 +139,13 @@ def generate_with_vllm(
     stop=None,
 ):
     try:
-        from vllm import LLM, SamplingParams
+        from vllm import SamplingParams
     except ImportError as exc:
         raise ImportError(
             "vllm is required for provider='vllm'. Install it in the RAPTOR environment."
         ) from exc
 
-    engine_kwargs = dict(engine_kwargs or {})
-    engine_kwargs.setdefault("trust_remote_code", True)
-    cache_key = (model_name, _freeze(engine_kwargs))
-
-    llm = _VLLM_CACHE.get(cache_key)
-    if llm is None:
-        llm = LLM(model=model_name, **engine_kwargs)
-        _VLLM_CACHE[cache_key] = llm
+    llm = _get_or_create_vllm_llm(model_name=model_name, engine_kwargs=engine_kwargs)
 
     sampling_params = SamplingParams(
         max_tokens=max_tokens,

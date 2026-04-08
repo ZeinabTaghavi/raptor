@@ -15,6 +15,7 @@ raptor_run:
       pooling: mean
       normalize: true
       trust_remote_code: true
+      device: cpu
     summarization:
       provider: vllm
       model: Qwen/Qwen3-30B-A3B-Instruct-2507

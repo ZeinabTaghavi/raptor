@@ -670,6 +670,22 @@ def _normalize_model_config(model_config: Dict[str, Any], default_provider: str,
     return normalized
 
 
+def _build_vllm_engine_kwargs(
+    model_config: Dict[str, Any], *, excluded_keys: Sequence[str]
+) -> Dict[str, Any]:
+    engine_kwargs = {
+        key: value
+        for key, value in model_config.items()
+        if key not in set(excluded_keys) | {"vllm_kwargs"}
+    }
+
+    extra_kwargs = model_config.get("vllm_kwargs", {}) or {}
+    if isinstance(extra_kwargs, dict):
+        engine_kwargs.update(extra_kwargs)
+
+    return engine_kwargs
+
+
 def _build_embedding_model(model_config: Dict[str, Any]):
     provider = model_config["provider"]
     if provider == "openai":
@@ -718,12 +734,10 @@ def _build_summarization_model(model_config: Dict[str, Any]):
     if provider == "vllm":
         return VLLMSummarizationModel(
             model_name=model_config["model"],
-            engine_kwargs={
-                key: value
-                for key, value in model_config.items()
-                if key
-                not in {"provider", "model", "temperature", "top_p", "stop", "device"}
-            },
+            engine_kwargs=_build_vllm_engine_kwargs(
+                model_config,
+                excluded_keys={"provider", "model", "temperature", "top_p", "stop", "device"},
+            ),
             temperature=float(model_config.get("temperature", 0.0)),
             top_p=float(model_config.get("top_p", 1.0)),
             stop=model_config.get("stop"),
@@ -764,11 +778,9 @@ def _build_qa_model(model_config: Dict[str, Any]):
     if provider == "vllm":
         return VLLMQAModel(
             model_name=model_config["model"],
-            engine_kwargs={
-                key: value
-                for key, value in model_config.items()
-                if key
-                not in {
+            engine_kwargs=_build_vllm_engine_kwargs(
+                model_config,
+                excluded_keys={
                     "provider",
                     "model",
                     "default_max_tokens",
@@ -776,8 +788,8 @@ def _build_qa_model(model_config: Dict[str, Any]):
                     "top_p",
                     "stop",
                     "device",
-                }
-            },
+                },
+            ),
             default_max_tokens=int(model_config.get("default_max_tokens", 256)),
             temperature=float(model_config.get("temperature", 0.0)),
             top_p=float(model_config.get("top_p", 1.0)),
@@ -961,6 +973,33 @@ def resolve_run_config(
             f"Mapped trust_remote_code from {model_trust_remote_code_path}."
         )
 
+    model_max_model_len, model_max_model_len_path = _first_present(
+        raw_reference,
+        ["models.qa.max_model_len", "model.max_model_len"],
+    )
+    if model_max_model_len_path:
+        mapped_fields.append(
+            f"Mapped max_model_len from {model_max_model_len_path}."
+        )
+
+    model_enforce_eager, model_enforce_eager_path = _first_present(
+        raw_reference,
+        ["models.qa.enforce_eager", "model.enforce_eager"],
+    )
+    if model_enforce_eager_path:
+        mapped_fields.append(
+            f"Mapped enforce_eager from {model_enforce_eager_path}."
+        )
+
+    model_vllm_max_num_seqs, model_vllm_max_num_seqs_path = _first_present(
+        raw_reference,
+        ["models.qa.vllm_kwargs.max_num_seqs", "model.vllm_kwargs.max_num_seqs"],
+    )
+    if model_vllm_max_num_seqs_path:
+        mapped_fields.append(
+            f"Mapped vllm_kwargs.max_num_seqs from {model_vllm_max_num_seqs_path}."
+        )
+
     documents_path, documents_path_source = _first_present(
         raw_reference,
         [
@@ -1141,6 +1180,16 @@ def resolve_run_config(
             config_block.setdefault(
                 "gpu_memory_utilization", model_gpu_memory_utilization
             )
+        if model_max_model_len is not None:
+            config_block.setdefault("max_model_len", model_max_model_len)
+        if model_enforce_eager is not None:
+            config_block.setdefault("enforce_eager", model_enforce_eager)
+        if model_vllm_max_num_seqs is not None:
+            vllm_kwargs = config_block.setdefault("vllm_kwargs", {})
+            if not isinstance(vllm_kwargs, dict):
+                vllm_kwargs = {}
+                config_block["vllm_kwargs"] = vllm_kwargs
+            vllm_kwargs.setdefault("max_num_seqs", model_vllm_max_num_seqs)
         if model_device is not None and config_block.get("provider") != "vllm":
             config_block.setdefault("device", model_device)
 
