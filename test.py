@@ -27,7 +27,7 @@ def _infer_tensor_parallel_size() -> int:
 BASE_DIR = Path(__file__).resolve().parent
 QWEN_MODEL = os.environ.get(
     "RAPTOR_QWEN_MODEL",
-    os.environ.get("QWEN_MODEL_ID", "Qwen/Qwen2-0.5B-Instruct"),
+    os.environ.get("QWEN_MODEL_ID", "Qwen/Qwen2-1.5B-Instruct"),
 )
 CONTRIEVER_MODEL = os.environ.get("RAPTOR_EMBEDDING_MODEL", "facebook/contriever")
 os.environ.setdefault("HF_HUB_ETAG_TIMEOUT", "60")

@@ -10,10 +10,13 @@ export TOKENIZERS_PARALLELISM="${TOKENIZERS_PARALLELISM:-false}"
 export VLLM_WORKER_MULTIPROC_METHOD="${VLLM_WORKER_MULTIPROC_METHOD:-spawn}"
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1,2,3}"
 
+DEFAULT_DATASET_NAME="${RAPTOR_DATASET_NAME:-qasper}"
+DEFAULT_YAML="${RAPTOR_DEFAULT_YAML:-configs/raptor/qasper_smoke_qwen2_1p5b.yaml}"
+
 if [ "$#" -eq 0 ]; then
   set -- \
-    --dataset-name qasper \
-    --default-yaml configs/raptor/qasper_retrieval_ablation.yaml
+    --dataset-name "$DEFAULT_DATASET_NAME" \
+    --default-yaml "$DEFAULT_YAML"
 fi
 
 python scripts/run_raptor_experiment.py "$@"
