@@ -740,17 +740,9 @@ def _build_summarization_model(model_config: Dict[str, Any]):
             return GPT3SummarizationModel(model=model_name)
         return GPT3TurboSummarizationModel(model=model_name)
     if provider in {"transformers", "hf"}:
-        return TransformersSummarizationModel(
-            model_name=model_config["model"],
-            pipeline_kwargs={
-                key: value
-                for key, value in model_config.items()
-                if key
-                not in {"provider", "model", "temperature", "top_p", "stop"}
-            },
-            temperature=float(model_config.get("temperature", 0.0)),
-            top_p=float(model_config.get("top_p", 1.0)),
-            stop=model_config.get("stop"),
+        raise ValueError(
+            "Transformers summarization is disabled for this RAPTOR setup. "
+            "Use provider='vllm' for the summarization model."
         )
     if provider == "vllm":
         return VLLMSummarizationModel(
@@ -778,25 +770,9 @@ def _build_qa_model(model_config: Dict[str, Any]):
             return GPT4QAModel(model=model_name)
         return GPT3TurboQAModel(model=model_name)
     if provider in {"transformers", "hf"}:
-        return TransformersQAModel(
-            model_name=model_config["model"],
-            pipeline_kwargs={
-                key: value
-                for key, value in model_config.items()
-                if key
-                not in {
-                    "provider",
-                    "model",
-                    "default_max_tokens",
-                    "temperature",
-                    "top_p",
-                    "stop",
-                }
-            },
-            default_max_tokens=int(model_config.get("default_max_tokens", 256)),
-            temperature=float(model_config.get("temperature", 0.0)),
-            top_p=float(model_config.get("top_p", 1.0)),
-            stop=model_config.get("stop"),
+        raise ValueError(
+            "Transformers QA is disabled for this RAPTOR setup. "
+            "Use provider='vllm' for the QA model."
         )
     if provider == "vllm":
         return VLLMQAModel(
@@ -1148,16 +1124,11 @@ def resolve_run_config(
         default_embedding_model = "facebook/contriever"
         default_generation_provider = "vllm"
         default_generation_model = model_id or "Qwen/Qwen2-0.5B-Instruct"
-    elif inferred_backend in {"transformers", "hf"}:
-        default_embedding_provider = "contriever"
-        default_embedding_model = "facebook/contriever"
-        default_generation_provider = "transformers"
-        default_generation_model = model_id or "Qwen/Qwen2-0.5B-Instruct"
     else:
         default_embedding_provider = "contriever"
         default_embedding_model = "facebook/contriever"
         default_generation_provider = "vllm"
-        default_generation_model = "Qwen/Qwen3-30B-A3B-Instruct-2507"
+        default_generation_model = "Qwen/Qwen2-0.5B-Instruct"
 
     base_embedding_config = explicit_config.get("models", {}).get("embedding", {})
     if not base_embedding_config and default_embedding_provider in {"contriever", "transformers"}:
@@ -1171,13 +1142,13 @@ def resolve_run_config(
 
     base_summarization_config = explicit_config.get("models", {}).get("summarization", {})
     base_qa_config = explicit_config.get("models", {}).get("qa", {})
-    if not base_summarization_config and inferred_backend in {"vllm", "transformers", "hf"}:
+    if not base_summarization_config and inferred_backend in {"vllm"}:
         base_summarization_config = {
             "provider": default_generation_provider,
             "model": default_generation_model,
             "trust_remote_code": True if model_trust_remote_code is None else model_trust_remote_code,
         }
-    if not base_qa_config and inferred_backend in {"vllm", "transformers", "hf"}:
+    if not base_qa_config and inferred_backend in {"vllm"}:
         base_qa_config = {
             "provider": default_generation_provider,
             "model": default_generation_model,
@@ -1453,6 +1424,9 @@ def run_experiment(
     embedding_model = _build_embedding_model(resolved_config["embedding_model"])
     summarization_model = _build_summarization_model(tree_builder_settings["summarization_model"])
     qa_model = _build_qa_model(generation_settings["qa_model"])
+
+    if hasattr(summarization_model, "warm_up"):
+        summarization_model.warm_up()
 
     builder_config = ClusterTreeConfig(
         tokenizer=tokenizer,
