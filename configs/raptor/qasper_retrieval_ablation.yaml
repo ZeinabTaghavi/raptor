@@ -15,10 +15,11 @@ raptor_run:
       pooling: mean
       normalize: true
       trust_remote_code: true
+      device: cpu
     summarization:
       provider: vllm
-      model: Qwen/Qwen2-0.5B-Instruct
-      tensor_parallel_size: 1
+      model: Qwen/Qwen3-30B-A3B-Instruct-2507
+      tensor_parallel_size: 4
       dtype: bfloat16
       gpu_memory_utilization: 0.9
       trust_remote_code: true
@@ -26,8 +27,8 @@ raptor_run:
       top_p: 1.0
     qa:
       provider: vllm
-      model: Qwen/Qwen2-0.5B-Instruct
-      tensor_parallel_size: 1
+      model: Qwen/Qwen3-30B-A3B-Instruct-2507
+      tensor_parallel_size: 4
       dtype: bfloat16
       gpu_memory_utilization: 0.9
       trust_remote_code: true
