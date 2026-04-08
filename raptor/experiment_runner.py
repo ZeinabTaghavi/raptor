@@ -30,6 +30,8 @@ from ._compat import get_default_tokenizer
 from .cluster_tree_builder import ClusterTreeBuilder, ClusterTreeConfig
 from .tree_retriever import TreeRetriever, TreeRetrieverConfig
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
 
 @dataclass
 class DocumentRecord:
@@ -1313,7 +1315,7 @@ def resolve_run_config(
         "run_settings": {
             "dataset_name": dataset_name,
             "run_name": resolved_run_name,
-            "output_root": str((yaml_path.parent / resolved_output_root).resolve())
+            "output_root": str((PROJECT_ROOT / resolved_output_root).resolve())
             if not Path(resolved_output_root).is_absolute()
             else resolved_output_root,
             "resume": bool(resume or explicit_config.get("resume", False)),
@@ -1351,6 +1353,10 @@ def resolve_run_config(
     if raw_reference.get("output_dir") is not None and not explicit_config.get("output_root"):
         notes.append(
             "Ignored output_dir from the source YAML and used the RAPTOR default output root structure under raptor_runs/<dataset>/<run_name>."
+        )
+    if not Path(resolved_output_root).is_absolute():
+        notes.append(
+            "Resolved relative output_root under the RAPTOR project root so artifacts remain inside this repository."
         )
 
     notes.extend(mapped_fields)

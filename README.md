@@ -264,6 +264,7 @@ QuALITY is supported through the same unified dataset-loader path. The RAPTOR-sp
 - `configs/raptor/quality_retrieval_ablation_transformers.yaml`
 
 Use `--dataset-name quality` so its outputs are stored separately under `raptor_runs/quality/...`.
+Relative output roots are resolved under this RAPTOR project, even if you pass a reference YAML from another repository.
 
 Run the default `vllm` variant with:
 
