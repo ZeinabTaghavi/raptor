@@ -51,7 +51,6 @@ llm_model: &id001
   - '[END_JSON]'
   - <|im_end|>
   - <|endoftext|>
-  tensor_parallel_size: 4
 embedding_model:
   provider: contriever
   model: facebook/contriever
@@ -76,7 +75,6 @@ tree_builder_settings:
     trust_remote_code: true
     temperature: 0.0
     top_p: 1.0
-    tensor_parallel_size: 4
 retrieval_settings:
   start_layer: null
   num_layers: null
@@ -103,6 +101,4 @@ run_settings:
   output_root: /home/iataghav/raptor/configs/raptor/raptor_runs
   resume: false
   default_experiment_yaml: /home/iataghav/raptor/configs/raptor/loogle_retrieval_ablation.yaml
-mapping_notes:
-- Defaulted summarization tensor_parallel_size to 4 from visible GPUs.
-- Defaulted qa tensor_parallel_size to 4 from visible GPUs.
+mapping_notes: []

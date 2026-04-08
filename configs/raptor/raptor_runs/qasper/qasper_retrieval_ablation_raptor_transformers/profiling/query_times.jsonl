@@ -1,9 +1,0 @@
-{"query_id": "1911.10742::qa::0", "doc_id": "1911.10742", "retrieval_latency_ms": 11.604, "generation_latency_ms": 875163.609, "total_latency_ms": 875175.213}
-{"query_id": "1911.10742::qa::1", "doc_id": "1911.10742", "retrieval_latency_ms": 13.555, "generation_latency_ms": 876321.043, "total_latency_ms": 876334.599}
-{"query_id": "1911.10742::qa::2", "doc_id": "1911.10742", "retrieval_latency_ms": 13.362, "generation_latency_ms": 876424.722, "total_latency_ms": 876438.084}
-{"query_id": "1911.10742::qa::3", "doc_id": "1911.10742", "retrieval_latency_ms": 13.683, "generation_latency_ms": 876659.723, "total_latency_ms": 876673.405}
-{"query_id": "1904.09131::qa::0", "doc_id": "1904.09131", "retrieval_latency_ms": 11.474, "generation_latency_ms": 32898.244, "total_latency_ms": 32909.718}
-{"query_id": "1611.06322::qa::0", "doc_id": "1611.06322", "retrieval_latency_ms": 12.301, "generation_latency_ms": 876042.853, "total_latency_ms": 876055.154}
-{"query_id": "1611.06322::qa::1", "doc_id": "1611.06322", "retrieval_latency_ms": 12.751, "generation_latency_ms": 875618.977, "total_latency_ms": 875631.728}
-{"query_id": "1611.06322::qa::2", "doc_id": "1611.06322", "retrieval_latency_ms": 12.845, "generation_latency_ms": 931578.103, "total_latency_ms": 931590.948}
-{"query_id": "1611.06322::qa::3", "doc_id": "1611.06322", "retrieval_latency_ms": 13.215, "generation_latency_ms": 1016157.439, "total_latency_ms": 1016170.654}

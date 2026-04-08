@@ -1,0 +1,14 @@
+{
+  "doc_id": "article:62085",
+  "num_nodes": 25,
+  "num_leaf_nodes": 21,
+  "num_layers": 1,
+  "total_tree_token_count": 6657,
+  "token_count_by_layer": {
+    "0": 6059,
+    "1": 598
+  },
+  "build_time_ms": 7613.071,
+  "peak_cpu_memory_mb": 1628.211,
+  "peak_gpu_memory_mb": 780.881
+}

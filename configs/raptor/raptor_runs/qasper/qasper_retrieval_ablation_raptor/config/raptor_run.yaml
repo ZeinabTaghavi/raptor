@@ -42,7 +42,7 @@ dataset_loader_settings:
 llm_model: &id001
   provider: vllm
   model: Qwen/Qwen3-30B-A3B-Instruct-2507
-  tensor_parallel_size: 2
+  tensor_parallel_size: 4
   dtype: bfloat16
   gpu_memory_utilization: 0.9
   trust_remote_code: true
@@ -58,6 +58,7 @@ embedding_model:
   pooling: mean
   normalize: true
   trust_remote_code: true
+  device: cpu
 tree_builder_settings:
   builder_type: cluster
   max_tokens: 200
@@ -71,7 +72,7 @@ tree_builder_settings:
   summarization_model:
     provider: vllm
     model: Qwen/Qwen3-30B-A3B-Instruct-2507
-    tensor_parallel_size: 2
+    tensor_parallel_size: 4
     dtype: bfloat16
     gpu_memory_utilization: 0.9
     trust_remote_code: true

@@ -10,14 +10,33 @@ raptor_run:
       max_docs: 25
   models:
     embedding:
-      provider: openai
-      model: text-embedding-ada-002
+      provider: contriever
+      model: facebook/contriever
+      pooling: mean
+      normalize: true
+      trust_remote_code: true
     summarization:
-      provider: openai
-      model: gpt-3.5-turbo
+      provider: vllm
+      model: Qwen/Qwen2-0.5B-Instruct
+      tensor_parallel_size: 1
+      dtype: bfloat16
+      gpu_memory_utilization: 0.9
+      trust_remote_code: true
+      temperature: 0.0
+      top_p: 1.0
     qa:
-      provider: openai
-      model: gpt-3.5-turbo
+      provider: vllm
+      model: Qwen/Qwen2-0.5B-Instruct
+      tensor_parallel_size: 1
+      dtype: bfloat16
+      gpu_memory_utilization: 0.9
+      trust_remote_code: true
+      temperature: 0.6
+      top_p: 0.95
+      stop:
+        - "[END_JSON]"
+        - "<|im_end|>"
+        - "<|endoftext|>"
   tree_builder:
     max_tokens: 200
     num_layers: 5
