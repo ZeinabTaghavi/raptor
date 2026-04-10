@@ -23,7 +23,7 @@ declare -A DATASET_CONFIGS=(
   [novelhopqa]="configs/experiments/novelhopqa_retrieval_ablation.yaml"
 )
 
-DEFAULT_DATASETS="qasper,loogle,narrativeqa,quality,novelhopqa"
+DEFAULT_DATASETS="novelhopqa" # qasper,loogle,narrativeqa,quality,
 DATASETS_CSV="${RAPTOR_DATASETS_CSV:-$DEFAULT_DATASETS}"
 
 run_one() {

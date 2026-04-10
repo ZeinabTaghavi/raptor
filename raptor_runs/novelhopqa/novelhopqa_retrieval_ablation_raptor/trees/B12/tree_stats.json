@@ -1,0 +1,16 @@
+{
+  "doc_id": "B12",
+  "num_nodes": 631,
+  "num_leaf_nodes": 491,
+  "num_layers": 3,
+  "total_tree_token_count": 256588,
+  "token_count_by_layer": {
+    "0": 235585,
+    "1": 17108,
+    "2": 3146,
+    "3": 749
+  },
+  "build_time_ms": 418790.9,
+  "peak_cpu_memory_mb": 2033.461,
+  "peak_gpu_memory_mb": 1070.887
+}
