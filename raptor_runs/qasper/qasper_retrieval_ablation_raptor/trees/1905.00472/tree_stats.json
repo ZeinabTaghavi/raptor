@@ -1,0 +1,14 @@
+{
+  "doc_id": "1905.00472",
+  "num_nodes": 28,
+  "num_leaf_nodes": 22,
+  "num_layers": 1,
+  "total_tree_token_count": 5007,
+  "token_count_by_layer": {
+    "0": 4117,
+    "1": 890
+  },
+  "build_time_ms": 18573.971,
+  "peak_cpu_memory_mb": 6092.141,
+  "peak_gpu_memory_mb": 0.0
+}
