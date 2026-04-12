@@ -12,6 +12,8 @@ from .utils import (distances_from_embeddings, get_children, get_embeddings,
 
 logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 
+FIXED_RETRIEVAL_TOP_K = 10
+
 
 class TreeRetrieverConfig:
     def __init__(
@@ -187,8 +189,10 @@ class TreeRetriever(BaseRetriever):
 
         indices = indices_of_nearest_neighbors_from_distances(distances)
 
+        ordered_indices = indices[:FIXED_RETRIEVAL_TOP_K]
+
         total_tokens = 0
-        for rank, idx in enumerate(indices[:top_k], start=1):
+        for rank, idx in enumerate(ordered_indices, start=1):
 
             node = node_list[idx]
             node_tokens = len(self.tokenizer.encode(node.text))
@@ -239,7 +243,7 @@ class TreeRetriever(BaseRetriever):
                 ]
 
             elif self.selection_mode == "top_k":
-                best_indices = indices[: self.top_k]
+                best_indices = indices[:FIXED_RETRIEVAL_TOP_K]
 
             nodes_to_add = [node_list[idx] for idx in best_indices]
 
@@ -301,10 +305,12 @@ class TreeRetriever(BaseRetriever):
         if num_layers > (start_layer + 1):
             raise ValueError("num_layers must be less than or equal to start_layer + 1")
 
+        effective_top_k = FIXED_RETRIEVAL_TOP_K
+
         if collapse_tree:
             logging.info("Using collapsed_tree")
             selected_nodes, context, retrieved_nodes = (
-                self.retrieve_information_collapse_tree(query, top_k, max_tokens)
+                self.retrieve_information_collapse_tree(query, effective_top_k, max_tokens)
             )
         else:
             layer_nodes = self.tree.layer_to_nodes[start_layer]
@@ -353,7 +359,7 @@ class TreeRetriever(BaseRetriever):
             query=query,
             start_layer=start_layer,
             num_layers=num_layers,
-            top_k=top_k,
+            top_k=FIXED_RETRIEVAL_TOP_K,
             max_tokens=max_tokens,
             collapse_tree=collapse_tree,
         )

@@ -28,7 +28,7 @@ from .SummarizationModels import (ExtractiveSummarizationModel,
                                   VLLMSummarizationModel)
 from ._compat import get_default_tokenizer
 from .cluster_tree_builder import ClusterTreeBuilder, ClusterTreeConfig
-from .tree_retriever import TreeRetriever, TreeRetrieverConfig
+from .tree_retriever import FIXED_RETRIEVAL_TOP_K, TreeRetriever, TreeRetrieverConfig
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -1608,7 +1608,7 @@ def run_experiment(
             TreeRetrieverConfig(
                 tokenizer=tokenizer,
                 threshold=float(retrieval_settings["threshold"]),
-                top_k=int(retrieval_settings["top_k"]),
+                top_k=FIXED_RETRIEVAL_TOP_K,
                 selection_mode=retrieval_settings["selection_mode"],
                 context_embedding_model="primary",
                 embedding_model=embedding_model,
@@ -1628,7 +1628,7 @@ def run_experiment(
                 query=qa_entry.question,
                 start_layer=retrieval_settings["start_layer"],
                 num_layers=retrieval_settings["num_layers"],
-                top_k=int(retrieval_settings["top_k"]),
+                top_k=FIXED_RETRIEVAL_TOP_K,
                 max_tokens=int(retrieval_settings["max_tokens"]),
                 collapse_tree=bool(retrieval_settings["collapse_tree"]),
             )
@@ -1662,7 +1662,10 @@ def run_experiment(
                 "context": context,
                 "context_token_count": context_token_count,
                 "retrieval_latency_ms": round(retrieval_latency_ms, 3),
-                "retrieval_config": dict(retrieval_settings),
+                "retrieval_config": {
+                    **dict(retrieval_settings),
+                    "top_k": FIXED_RETRIEVAL_TOP_K,
+                },
             }
             _append_jsonl(retrieval_payloads_path, retrieval_artifact)
 
