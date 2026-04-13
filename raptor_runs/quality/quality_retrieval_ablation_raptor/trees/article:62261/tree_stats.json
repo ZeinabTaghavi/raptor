@@ -3,12 +3,12 @@
   "num_nodes": 28,
   "num_leaf_nodes": 23,
   "num_layers": 1,
-  "total_tree_token_count": 7257,
+  "total_tree_token_count": 7258,
   "token_count_by_layer": {
     "0": 6507,
-    "1": 750
+    "1": 751
   },
-  "build_time_ms": 9050.605,
-  "peak_cpu_memory_mb": 1624.086,
-  "peak_gpu_memory_mb": 795.039
+  "build_time_ms": 13455.819,
+  "peak_cpu_memory_mb": 1760.793,
+  "peak_gpu_memory_mb": 790.299
 }

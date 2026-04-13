@@ -7,7 +7,7 @@
   "token_count_by_layer": {
     "0": 1515
   },
-  "build_time_ms": 567.805,
-  "peak_cpu_memory_mb": 6243.945,
+  "build_time_ms": 539.069,
+  "peak_cpu_memory_mb": 6509.566,
   "peak_gpu_memory_mb": 0.0
 }

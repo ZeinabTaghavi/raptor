@@ -1,14 +1,14 @@
 {
   "doc_id": "article:61119",
-  "num_nodes": 28,
+  "num_nodes": 26,
   "num_leaf_nodes": 22,
   "num_layers": 1,
-  "total_tree_token_count": 6986,
+  "total_tree_token_count": 6820,
   "token_count_by_layer": {
     "0": 6220,
-    "1": 766
+    "1": 600
   },
-  "build_time_ms": 9033.039,
-  "peak_cpu_memory_mb": 1631.211,
-  "peak_gpu_memory_mb": 788.538
+  "build_time_ms": 12196.597,
+  "peak_cpu_memory_mb": 1772.793,
+  "peak_gpu_memory_mb": 790.105
 }

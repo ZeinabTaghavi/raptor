@@ -1,19 +1,19 @@
 {
-  "created_at_utc": "2026-04-08T15:35:17.423612+00:00",
+  "created_at_utc": "2026-04-12T18:52:44.603739+00:00",
   "dataset_name": "loogle",
   "run_name": "loogle_retrieval_ablation_raptor",
   "command": "scripts/run_raptor_experiment.py --dataset-name loogle --default-yaml configs/raptor/loogle_retrieval_ablation.yaml",
-  "git_commit": "3d646333f531e3b1d0b70d872380d0ff277f5180",
+  "git_commit": "5ea449e369a158942446cd67d2eb415065c1d4e6",
   "python_version": "3.12.3 (main, Mar  3 2026, 12:15:18) [GCC 13.3.0]",
   "package_versions": {
     "PyYAML": "6.0.2",
-    "numpy": "2.2.6",
+    "numpy": "1.26.3",
     "openai": "2.24.0",
     "tiktoken": "0.12.0",
-    "sentence-transformers": null,
+    "sentence-transformers": "5.4.0",
     "torch": "2.9.1",
     "transformers": "4.57.6",
-    "scikit-learn": "1.8.0",
+    "scikit-learn": "1.5.2",
     "umap-learn": "0.5.5"
   },
   "hardware_summary": {

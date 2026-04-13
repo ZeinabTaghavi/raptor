@@ -1,16 +1,16 @@
 {
   "doc_id": "B15",
-  "num_nodes": 722,
+  "num_nodes": 729,
   "num_leaf_nodes": 542,
   "num_layers": 3,
-  "total_tree_token_count": 295150,
+  "total_tree_token_count": 296103,
   "token_count_by_layer": {
     "0": 268182,
-    "1": 21142,
-    "2": 5078,
-    "3": 748
+    "1": 21741,
+    "2": 5159,
+    "3": 1021
   },
-  "build_time_ms": 547567.474,
-  "peak_cpu_memory_mb": 3182.227,
-  "peak_gpu_memory_mb": 1070.867
+  "build_time_ms": 572296.343,
+  "peak_cpu_memory_mb": 3181.566,
+  "peak_gpu_memory_mb": 1061.304
 }
