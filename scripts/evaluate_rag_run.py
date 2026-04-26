@@ -942,8 +942,8 @@ def main() -> None:
 
     label_presence = label_fields_present(label_records)
     explicit_chunk_relevance_found = any(label_presence.values())
-    query_order = collect_query_order(retrieval_records, prediction_records)
-    if not query_order:
+    row_count = max(len(retrieval_records), len(prediction_records))
+    if row_count == 0:
         raise SystemExit(
             "No query records found. Expected retrieval/retrieval_payloads.jsonl or rag/qa_predictions.jsonl."
         )
@@ -952,9 +952,15 @@ def main() -> None:
     node_cache: Dict[str, Dict[int, List[str]]] = {}
     query_rows: List[Dict[str, Any]] = []
 
-    for query_id in query_order:
-        retrieval_record = retrieval_by_query.get(query_id)
-        prediction_record = prediction_by_query.get(query_id)
+    for row_index in range(row_count):
+        retrieval_record = retrieval_records[row_index] if row_index < len(retrieval_records) else None
+        prediction_record = prediction_records[row_index] if row_index < len(prediction_records) else None
+
+        query_id = (
+            record_query_id(prediction_record or {})
+            or record_query_id(retrieval_record or {})
+            or f"query_{row_index}"
+        )
 
         doc_id = (
             record_doc_id(prediction_record or {})
@@ -964,6 +970,20 @@ def main() -> None:
             record_question(prediction_record or {})
             or record_question(retrieval_record or {})
         )
+
+        if (
+            prediction_record is not None
+            and retrieval_record is not None
+            and record_query_id(prediction_record) != record_query_id(retrieval_record)
+        ):
+            retrieval_record = find_matching_record(
+                query_id,
+                doc_id,
+                question,
+                retrieval_by_query,
+                retrieval_by_doc_question,
+            ) or retrieval_record
+
         if prediction_record is None and retrieval_record is not None:
             prediction_record = find_matching_record(
                 query_id,
@@ -981,7 +1001,18 @@ def main() -> None:
                 retrieval_by_doc_question,
             )
 
-        label_record = find_matching_record(query_id, doc_id, question, labels_by_query, labels_by_doc_question)
+        label_record = label_records[row_index] if row_index < len(label_records) else None
+        if label_record is not None:
+            label_query_id = record_query_id(label_record)
+            label_doc_id = record_doc_id(label_record)
+            label_question = record_question(label_record)
+            same_query = label_query_id == query_id if label_query_id is not None else True
+            same_doc = label_doc_id == doc_id if label_doc_id is not None and doc_id is not None else True
+            same_question = label_question == question if label_question is not None and question is not None else True
+            if not (same_query and same_doc and same_question):
+                label_record = None
+        if label_record is None:
+            label_record = find_matching_record(query_id, doc_id, question, labels_by_query, labels_by_doc_question)
         labels = labels_from_record(label_record or {})
 
         retrieved_ids, retrieved_scores = extract_retrieved_leaf_ids(

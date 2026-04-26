@@ -1,0 +1,106 @@
+{
+  "created_at_utc": "2026-04-26T08:34:31.052101+00:00",
+  "input_files_used": {
+    "run_dir": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor",
+    "retrieval_file": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/retrieval/retrieval_payloads.jsonl",
+    "answers_file": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/rag/qa_predictions.jsonl",
+    "labels_file": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/selection/qa_entries.json",
+    "query_times_file": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/profiling/query_times.jsonl",
+    "resource_usage_file": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/profiling/resource_usage.jsonl",
+    "run_manifest_file": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/run_manifest.json"
+  },
+  "output_files_written": {
+    "metrics_summary": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/Raptor Evaluations/quality/quality_retrieval_ablation_raptor/metrics_summary.json",
+    "metrics_per_query": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/Raptor Evaluations/quality/quality_retrieval_ablation_raptor/metrics_per_query.jsonl",
+    "leaderboard_row": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/Raptor Evaluations/quality/quality_retrieval_ablation_raptor/leaderboard_row.json",
+    "evaluation_manifest": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/Raptor Evaluations/quality/quality_retrieval_ablation_raptor/evaluation_manifest.json"
+  },
+  "relevance_source_used": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/selection/qa_entries.json",
+  "explicit_chunk_level_relevance_fields_found": false,
+  "chunk_level_relevance_field_presence": {
+    "gold_chunk_ids": false,
+    "silver_chunk_ids": false,
+    "silver_chunk_groups": false
+  },
+  "primary_relevance_choice": null,
+  "primary_relevance_choice_policy": "Prefer gold when any gold_chunk_ids are eligible; else silver_loose; else silver_strict; else null.",
+  "generation_evaluated_from_top_k": 10,
+  "bertscore_configuration": {
+    "model": "roberta-large",
+    "lang": "en",
+    "batch_size": 16,
+    "device": "cpu",
+    "disabled": true
+  },
+  "raptor_node_to_leaf_expansion_method": "Use retrieval_payloads.expanded_retrieved_chunks when available. Otherwise expand retrieved_nodes.node_index through trees/<doc_id>/node_index.jsonl descendant_leaf_chunk_ids. After expansion, deduplicate leaf chunk ids while preserving first occurrence.",
+  "assumptions": [
+    "Existing QA predictions are evaluated as-is; no retrieval, context construction, or answer generation is rerun.",
+    "Ranking metrics use expanded and deduplicated leaf chunk ids in the order emitted by the run.",
+    "doc_id is never used as a fallback relevance id for chunk-level retrieval metrics.",
+    "metrics_per_query.jsonl intentionally excludes full contexts and raw node traces.",
+    "Node-level raw traces remain in the original retrieval payloads and are referenced by the manifest instead of duplicated."
+  ],
+  "missing_metrics_and_reasons": {
+    "retrieval_metrics": "No explicit chunk-level gold_chunk_ids, silver_chunk_ids, or silver_chunk_groups fields were found in the labels file. doc_id was not used as a fallback relevance id.",
+    "bertscore": "BERTScore disabled by --disable-bert-score."
+  },
+  "node_expansion_notes": [],
+  "command_used": "scripts/evaluate_rag_run.py --run-dir raptor_runs/quality/quality_retrieval_ablation_raptor --dataset-name quality --split test --method-name raptor --output-dir Raptor Evaluations --ks 5 10 --generation-top-k 10 --disable-bert-score",
+  "package_versions": {
+    "python": "3.12.6",
+    "bert-score": null,
+    "torch": "2.10.0",
+    "transformers": "5.0.0"
+  },
+  "source_run_manifest": {
+    "created_at_utc": "2026-04-12T20:49:16.035980+00:00",
+    "dataset_name": "quality",
+    "run_name": "quality_retrieval_ablation_raptor",
+    "command": "scripts/run_raptor_experiment.py --dataset-name quality --default-yaml configs/experiments/quality_retrieval_ablation.yaml",
+    "git_commit": "5ea449e369a158942446cd67d2eb415065c1d4e6",
+    "python_version": "3.12.3 (main, Mar  3 2026, 12:15:18) [GCC 13.3.0]",
+    "package_versions": {
+      "PyYAML": "6.0.2",
+      "numpy": "1.26.3",
+      "openai": "2.24.0",
+      "tiktoken": "0.12.0",
+      "sentence-transformers": "5.4.0",
+      "torch": "2.9.1",
+      "transformers": "4.57.6",
+      "scikit-learn": "1.5.2",
+      "umap-learn": "0.5.5"
+    },
+    "hardware_summary": {
+      "platform": "Linux-6.8.0-107-generic-x86_64-with-glibc2.39",
+      "machine": "x86_64",
+      "processor": "x86_64",
+      "cpu_count": 48,
+      "cuda_available": true,
+      "cuda_device_count": 4,
+      "cuda_devices": [
+        "NVIDIA RTX A6000",
+        "NVIDIA RTX A6000",
+        "NVIDIA RTX A6000",
+        "NVIDIA RTX A6000"
+      ]
+    },
+    "selected_documents_count": 25,
+    "selected_questions_count": 443,
+    "artifact_paths": {
+      "selection": "/home/iataghav/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/selection",
+      "corpus": "/home/iataghav/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/corpus",
+      "trees": "/home/iataghav/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/trees",
+      "retrieval": "/home/iataghav/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/retrieval",
+      "rag": "/home/iataghav/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/rag",
+      "profiling": "/home/iataghav/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/profiling"
+    },
+    "config_paths": {
+      "default_experiment_yaml": "/home/iataghav/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/config/default_experiment.yaml",
+      "raptor_run_yaml": "/home/iataghav/raptor/raptor_runs/quality/quality_retrieval_ablation_raptor/config/raptor_run.yaml"
+    },
+    "notes_about_assumptions_or_ignored_yaml_fields": [
+      "Per-document retrieval scope is enabled for all QA queries.",
+      "Resolved relative output_root under the RAPTOR project root so artifacts remain inside this repository."
+    ]
+  }
+}

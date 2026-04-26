@@ -1,0 +1,109 @@
+{
+  "method_name": "raptor",
+  "dataset_name": "quality",
+  "split": "test",
+  "run_name": "quality_retrieval_ablation_raptor",
+  "n_queries": 443,
+  "k_values": [
+    5,
+    10
+  ],
+  "primary_relevance": null,
+  "generation_top_k": 10,
+  "retrieval_metrics": {
+    "recall@5": null,
+    "recall@10": null,
+    "mrr@5": null,
+    "mrr@10": null,
+    "ndcg@5": null,
+    "ndcg@10": null,
+    "hit_rate@5": null,
+    "hit_rate@10": null
+  },
+  "retrieval_metrics_by_relevance": {
+    "gold": {
+      "recall@5": null,
+      "recall@10": null,
+      "mrr@5": null,
+      "mrr@10": null,
+      "ndcg@5": null,
+      "ndcg@10": null,
+      "hit_rate@5": null,
+      "hit_rate@10": null,
+      "eligible_queries": 0
+    },
+    "silver_loose": {
+      "recall@5": null,
+      "recall@10": null,
+      "mrr@5": null,
+      "mrr@10": null,
+      "ndcg@5": null,
+      "ndcg@10": null,
+      "hit_rate@5": null,
+      "hit_rate@10": null,
+      "eligible_queries": 0
+    },
+    "silver_strict": {
+      "recall@5": null,
+      "recall@10": null,
+      "mrr@5": null,
+      "mrr@10": null,
+      "ndcg@5": null,
+      "ndcg@10": null,
+      "hit_rate@5": null,
+      "hit_rate@10": null,
+      "eligible_queries": 0
+    },
+    "union": {
+      "recall@5": null,
+      "recall@10": null,
+      "mrr@5": null,
+      "mrr@10": null,
+      "ndcg@5": null,
+      "ndcg@10": null,
+      "hit_rate@5": null,
+      "hit_rate@10": null,
+      "eligible_queries": 0
+    }
+  },
+  "rag_metrics": {
+    "exact_match": 0.0,
+    "token_f1": 0.044839,
+    "rouge_l": 0.038993,
+    "bertscore_precision": null,
+    "bertscore_recall": null,
+    "bertscore_f1": null
+  },
+  "efficiency": {
+    "retrieval_latency_ms": {
+      "mean": 26.28016,
+      "median": 26.033,
+      "p95": 29.629
+    },
+    "generation_latency_ms": {
+      "mean": 2663.384578,
+      "median": 2751.484,
+      "p95": 2913.5662
+    },
+    "total_latency_ms": {
+      "mean": 2689.664709,
+      "median": 2778.391,
+      "p95": 2941.0154
+    },
+    "context_tokens": {
+      "mean": 2445.37246,
+      "median": 2444.0,
+      "p95": 2797.0
+    },
+    "answer_tokens": {
+      "mean": 243.146727,
+      "median": 256.0,
+      "p95": 257.0
+    },
+    "peak_gpu_memory_mb": {
+      "mean": 684.341643,
+      "median": 684.308,
+      "p95": 684.6918
+    }
+  }
+}
