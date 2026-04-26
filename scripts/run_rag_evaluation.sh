@@ -47,7 +47,7 @@ run_one() {
     --dataset-name "$dataset_name" \
     --split "$split" \
     --method-name "$method_name" \
-    --output-dir "Raptor Evaluations" \
+    --output-dir raptor_evaluations \
     --ks 5 10 \
     --generation-top-k 10 \
     "$@"

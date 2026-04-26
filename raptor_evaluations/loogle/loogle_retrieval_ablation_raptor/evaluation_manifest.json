@@ -1,5 +1,5 @@
 {
-  "created_at_utc": "2026-04-26T08:35:25.768848+00:00",
+  "created_at_utc": "2026-04-26T08:38:17.925578+00:00",
   "input_files_used": {
     "run_dir": "/home/iataghav/raptor/raptor_runs/loogle/loogle_retrieval_ablation_raptor",
     "retrieval_file": "/home/iataghav/raptor/raptor_runs/loogle/loogle_retrieval_ablation_raptor/retrieval/retrieval_payloads.jsonl",
@@ -10,10 +10,10 @@
     "run_manifest_file": "/home/iataghav/raptor/raptor_runs/loogle/loogle_retrieval_ablation_raptor/run_manifest.json"
   },
   "output_files_written": {
-    "metrics_summary": "/home/iataghav/raptor/Raptor Evaluations/loogle/loogle_retrieval_ablation_raptor/metrics_summary.json",
-    "metrics_per_query": "/home/iataghav/raptor/Raptor Evaluations/loogle/loogle_retrieval_ablation_raptor/metrics_per_query.jsonl",
-    "leaderboard_row": "/home/iataghav/raptor/Raptor Evaluations/loogle/loogle_retrieval_ablation_raptor/leaderboard_row.json",
-    "evaluation_manifest": "/home/iataghav/raptor/Raptor Evaluations/loogle/loogle_retrieval_ablation_raptor/evaluation_manifest.json"
+    "metrics_summary": "/home/iataghav/raptor/raptor_evaluations/loogle/loogle_retrieval_ablation_raptor/metrics_summary.json",
+    "metrics_per_query": "/home/iataghav/raptor/raptor_evaluations/loogle/loogle_retrieval_ablation_raptor/metrics_per_query.jsonl",
+    "leaderboard_row": "/home/iataghav/raptor/raptor_evaluations/loogle/loogle_retrieval_ablation_raptor/leaderboard_row.json",
+    "evaluation_manifest": "/home/iataghav/raptor/raptor_evaluations/loogle/loogle_retrieval_ablation_raptor/evaluation_manifest.json"
   },
   "relevance_source_used": "/home/iataghav/raptor/raptor_runs/loogle/loogle_retrieval_ablation_raptor/selection/qa_entries.json",
   "explicit_chunk_level_relevance_fields_found": false,
@@ -45,7 +45,7 @@
     "bertscore": "BERTScore package could not be imported: No module named 'bert_score'"
   },
   "node_expansion_notes": [],
-  "command_used": "scripts/evaluate_rag_run.py --run-dir raptor_runs/loogle/loogle_retrieval_ablation_raptor --dataset-name loogle --split test --method-name raptor --output-dir Raptor Evaluations --ks 5 10 --generation-top-k 10",
+  "command_used": "scripts/evaluate_rag_run.py --run-dir raptor_runs/loogle/loogle_retrieval_ablation_raptor --dataset-name loogle --split test --method-name raptor --output-dir raptor_evaluations --ks 5 10 --generation-top-k 10",
   "package_versions": {
     "python": "3.12.3",
     "bert-score": null,
