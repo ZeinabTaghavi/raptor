@@ -28,7 +28,7 @@ python scripts/evaluate_rag_run.py \
   --dataset-name "$DATASET_NAME" \
   --split "$SPLIT" \
   --method-name "$METHOD_NAME" \
-  --output-dir "Raptor Evaluations" \
+  --output-dir raptor_evaluations \
   --ks 5 10 \
   --generation-top-k 10 \
   "$@"

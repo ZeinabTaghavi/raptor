@@ -151,14 +151,14 @@ python scripts/evaluate_rag_run.py \
   --dataset-name qasper \
   --split test \
   --method-name raptor \
-  --output-dir "Raptor Evaluations" \
+  --output-dir raptor_evaluations \
   --ks 5 10 \
   --generation-top-k 10
 ```
 
 The script writes `metrics_summary.json`, `metrics_per_query.jsonl`,
 `leaderboard_row.json`, and `evaluation_manifest.json` under
-`Raptor Evaluations/<dataset-name>/<run-name>/`. It reads
+`raptor_evaluations/<dataset-name>/<run-name>/`. It reads
 `retrieval/retrieval_payloads.jsonl`, `rag/qa_predictions.jsonl`, and, by
 default, `selection/qa_entries.json`. Pass `--labels-file` when chunk-level
 `gold_chunk_ids`, `silver_chunk_ids`, or `silver_chunk_groups` live elsewhere.

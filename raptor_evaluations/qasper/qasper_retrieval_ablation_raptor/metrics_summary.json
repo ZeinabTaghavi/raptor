@@ -68,35 +68,35 @@
   },
   "rag_metrics": {
     "exact_match": 0.0,
-    "token_f1": 0.131689,
-    "rouge_l": 0.110463,
+    "token_f1": 0.134832,
+    "rouge_l": 0.110864,
     "bertscore_precision": null,
     "bertscore_recall": null,
     "bertscore_f1": null
   },
   "efficiency": {
     "retrieval_latency_ms": {
-      "mean": 840.43842,
-      "median": 856.295,
-      "p95": 890.427
+      "mean": 2213.471938,
+      "median": 2224.604,
+      "p95": 2317.364
     },
     "generation_latency_ms": {
-      "mean": 1990.32158,
-      "median": 2196.317,
-      "p95": 2233.75
+      "mean": 2418.426012,
+      "median": 2561.901,
+      "p95": 2600.24
     },
     "total_latency_ms": {
-      "mean": 2830.760025,
-      "median": 3018.477,
-      "p95": 3092.095
+      "mean": 4631.897914,
+      "median": 4750.496,
+      "p95": 4862.906
     },
     "context_tokens": {
-      "mean": 860.012346,
-      "median": 869.0,
-      "p95": 928.0
+      "mean": 1733.407407,
+      "median": 1741.0,
+      "p95": 1839.0
     },
     "answer_tokens": {
-      "mean": 224.111111,
+      "mean": 232.814815,
       "median": 253.0,
       "p95": 256.0
     },

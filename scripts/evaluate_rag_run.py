@@ -19,7 +19,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "Raptor Evaluations"
+DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "raptor_evaluations"
 RETRIEVAL_METRIC_PREFIXES = ("recall", "mrr", "ndcg", "hit_rate")
 RAG_METRIC_KEYS = (
     "exact_match",
@@ -71,7 +71,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(DEFAULT_OUTPUT_ROOT),
         help=(
             "Evaluation output root. Results are written under "
-            "<output-dir>/<dataset-name>/<run-name>. Defaults to 'Raptor Evaluations'."
+            "<output-dir>/<dataset-name>/<run-name>. Defaults to 'raptor_evaluations'."
         ),
     )
     parser.add_argument("--method-name", required=True, help="Comparable method name, e.g. raptor.")
