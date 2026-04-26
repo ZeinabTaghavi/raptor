@@ -25,7 +25,12 @@ def build_parser():
     parser.add_argument("--run-name", help="Optional run name. Defaults to the YAML run_name or a UTC timestamp.")
     parser.add_argument(
         "--output-root",
-        help="Optional output root. Defaults to 'raptor_runs' relative to the YAML file.",
+        help="Optional output root. Defaults to the YAML output_root, usually raptor_10_runs.",
+    )
+    parser.add_argument(
+        "--retrieval-top-k",
+        type=int,
+        help="Override retrieval.top_k for the run, e.g. 5 or 10.",
     )
     parser.add_argument(
         "--resume",
@@ -44,6 +49,7 @@ def main():
         default_yaml_path=args.default_yaml,
         run_name=args.run_name,
         output_root=args.output_root,
+        retrieval_top_k=args.retrieval_top_k,
         resume=args.resume,
     )
     print(json.dumps(result, indent=2, ensure_ascii=True))

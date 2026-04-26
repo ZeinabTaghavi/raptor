@@ -1,6 +1,6 @@
 raptor_run:
   run_name: quality_retrieval_ablation_raptor
-  output_root: raptor_runs
+  output_root: raptor_10_runs
   dataset:
     split: validation
     loader:

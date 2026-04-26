@@ -112,10 +112,13 @@ bash main.sh
 
 By default it runs `qasper`, `loogle`, `narrativeqa`, `quality`, and `novelhopqa` in that order. You can override the sweep with `RAPTOR_DATASETS_CSV=qasper,quality`, or pass normal CLI flags to `main.sh` to run a single experiment.
 
+Top-k-specific experiment outputs are kept apart. The existing top-10 outputs
+live under `raptor_10_runs`; top-5 outputs should go under `raptor_5_runs`.
+
 The runner creates:
 
 ```text
-raptor_runs/
+raptor_10_runs/
   <dataset_name>/
     <run_name>/
       config/
@@ -146,28 +149,42 @@ Existing RAPTOR runs can be evaluated without rerunning retrieval or answer
 generation:
 
 ```bash
-python scripts/evaluate_rag_run.py \
-  --run-dir raptor_runs/qasper/qasper_retrieval_ablation_raptor \
-  --dataset-name qasper \
-  --split test \
-  --method-name raptor \
-  --output-dir raptor_evaluations \
-  --generation-top-k 10
+scripts/run_rag_evaluation.sh --top-k 10
 ```
 
 The script writes `metrics_summary.json`, `metrics_per_query.jsonl`,
 `leaderboard_row.json`, and `evaluation_manifest.json` under
-`raptor_evaluations/<dataset-name>/<run-name>/`. By default it reads
+`raptor_<top-k>_evaluations/<dataset-name>/<run-name>/`. By default it reads
 `rag/qa_predictions.jsonl` plus `selection/qa_entries.json` for references and
 writes generation-focused compact reports. Retrieval effectiveness metrics are
 omitted by default for RAPTOR paper reporting; pass `--include-retrieval-metrics`
 only if you also provide explicit chunk-level labels.
 
 Generation metrics evaluate the already-generated answers and record
-`generation_top_k = 10` in the summary and manifest. The report includes EM,
+`generation_top_k` in the summary and manifest. The report includes EM,
 token F1, ROUGE-L, extracted-answer EM/F1, answer containment, and BERTScore.
 BERTScore is required unless you explicitly pass `--disable-bert-score` for
 smoke tests or `--allow-missing-bert-score` to preserve null fields.
+
+Top-5 and top-10 scenarios can run in parallel:
+
+```bash
+# Run one top-5 dataset.
+scripts/run_raptor_5_experiments.sh --dataset novelhopqa
+
+# Run another top-5 dataset separately.
+scripts/run_raptor_5_experiments.sh --dataset qasper
+
+# Evaluate whatever top-5 runs are available.
+scripts/run_rag_evaluation.sh --top-k 5
+```
+
+The matching folder convention is:
+
+```text
+raptor_10_runs/          -> raptor_10_evaluations/
+raptor_5_runs/           -> raptor_5_evaluations/
+```
 
 ### YAML Shape
 
@@ -269,7 +286,7 @@ NarrativeQA is supported through the same unified dataset-loader path. The RAPTO
 - `configs/raptor/nqa_retrieval_ablation.yaml`
 - `configs/raptor/nqa_retrieval_ablation_transformers.yaml`
 
-Use `--dataset-name narrativeqa` so its outputs are stored separately under `raptor_runs/narrativeqa/...`.
+Use `--dataset-name narrativeqa` so its outputs are stored separately under `raptor_10_runs/narrativeqa/...`.
 
 Run the default `vllm` variant with:
 
@@ -300,7 +317,7 @@ QuALITY is supported through the same unified dataset-loader path. The RAPTOR-sp
 - `configs/raptor/quality_retrieval_ablation.yaml`
 - `configs/raptor/quality_retrieval_ablation_transformers.yaml`
 
-Use `--dataset-name quality` so its outputs are stored separately under `raptor_runs/quality/...`.
+Use `--dataset-name quality` so its outputs are stored separately under `raptor_10_runs/quality/...`.
 Relative output roots are resolved under this RAPTOR project, even if you pass a reference YAML from another repository.
 
 Run the default `vllm` variant with:
@@ -346,7 +363,7 @@ NovelHopQA is supported through the same unified dataset-loader path, with whole
 - `configs/experiments/novelhopqa_retrieval_ablation.yaml`
 - `configs/raptor/novelhopqa_retrieval_ablation.yaml`
 
-The default config expects the sibling corpus directory at `../passing_meta_tag/novelhopqa/book-corpus-root` and stores outputs under `raptor_runs/novelhopqa/...`.
+The default config expects the sibling corpus directory at `../passing_meta_tag/novelhopqa/book-corpus-root` and stores outputs under `raptor_10_runs/novelhopqa/...`.
 
 Run it with:
 

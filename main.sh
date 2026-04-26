@@ -15,16 +15,23 @@ export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1,2,3}"
 export NOVELHOPQA_BOOKS_ROOT="${NOVELHOPQA_BOOKS_ROOT:-../passing_meta_tag/novelhopqa/book-corpus-root}"
 export NOVELHOPQA_SUBSET_MODE="${NOVELHOPQA_SUBSET_MODE:-1}"
 
-declare -A DATASET_CONFIGS=(
-  [qasper]="configs/raptor/qasper_retrieval_ablation.yaml"
-  [loogle]="configs/raptor/loogle_retrieval_ablation.yaml"
-  [narrativeqa]="configs/raptor/nqa_retrieval_ablation.yaml"
-  [quality]="configs/experiments/quality_retrieval_ablation.yaml"
-  [novelhopqa]="configs/experiments/novelhopqa_retrieval_ablation.yaml"
-)
+TOP_K="${TOP_K:-10}"
+OUTPUT_ROOT="${OUTPUT_ROOT:-raptor_${TOP_K}_runs}"
+export NOVELHOPQA_REPORT_DIR="${NOVELHOPQA_REPORT_DIR:-${OUTPUT_ROOT}/novelhopqa/_loader_reports}"
 
 DEFAULT_DATASETS="novelhopqa" # qasper,loogle,narrativeqa,quality,
 DATASETS_CSV="${RAPTOR_DATASETS_CSV:-$DEFAULT_DATASETS}"
+
+config_for_dataset() {
+  case "$1" in
+    qasper) echo "configs/raptor/qasper_retrieval_ablation.yaml" ;;
+    loogle) echo "configs/raptor/loogle_retrieval_ablation.yaml" ;;
+    narrativeqa) echo "configs/raptor/nqa_retrieval_ablation.yaml" ;;
+    quality) echo "configs/experiments/quality_retrieval_ablation.yaml" ;;
+    novelhopqa) echo "configs/experiments/novelhopqa_retrieval_ablation.yaml" ;;
+    *) return 1 ;;
+  esac
+}
 
 run_one() {
   local dataset_name="$1"
@@ -35,12 +42,15 @@ run_one() {
     exit 2
   fi
 
-  echo "Running RAPTOR dataset=${dataset_name}"
+  echo "Running RAPTOR dataset=${dataset_name} top_k=${TOP_K}"
   echo "  config=${default_yaml}"
+  echo "  output_root=${OUTPUT_ROOT}"
 
   python scripts/run_raptor_experiment.py \
     --dataset-name "${dataset_name}" \
-    --default-yaml "${default_yaml}"
+    --default-yaml "${default_yaml}" \
+    --output-root "${OUTPUT_ROOT}" \
+    --retrieval-top-k "${TOP_K}"
 }
 
 if [ "$#" -gt 0 ]; then
@@ -54,10 +64,10 @@ for dataset_name in "${requested_datasets[@]}"; do
   if [[ -z "${dataset_name}" ]]; then
     continue
   fi
-  if [[ -z "${DATASET_CONFIGS[${dataset_name}]:-}" ]]; then
+  if ! default_yaml="$(config_for_dataset "${dataset_name}")"; then
     echo "Unsupported dataset in RAPTOR_DATASETS_CSV: ${dataset_name}" >&2
     echo "Supported datasets: ${DEFAULT_DATASETS}" >&2
     exit 2
   fi
-  run_one "${dataset_name}" "${DATASET_CONFIGS[${dataset_name}]}"
+  run_one "${dataset_name}" "${default_yaml}"
 done

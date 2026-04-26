@@ -12,9 +12,9 @@
     "exact_match_extracted": 0.209877,
     "token_f1_extracted": 0.473016,
     "answer_containment": 0.530864,
-    "bertscore_precision": 0.792408,
-    "bertscore_recall": 0.86766,
-    "bertscore_f1": 0.827992
+    "bertscore_precision": null,
+    "bertscore_recall": null,
+    "bertscore_f1": null
   },
   "efficiency": {
     "retrieval_latency_ms": {

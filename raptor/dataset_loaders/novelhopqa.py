@@ -400,7 +400,7 @@ def _resolve_report_dir(raw_report_dir: str | os.PathLike[str] | None) -> Path:
     configured = env_report_dir or (str(raw_report_dir).strip() if raw_report_dir is not None else "")
     if configured:
         return Path(configured).expanduser().resolve()
-    return PROJECT_ROOT / "raptor_runs" / "novelhopqa" / "_loader_reports"
+    return PROJECT_ROOT / "raptor_10_runs" / "novelhopqa" / "_loader_reports"
 
 
 def _write_title_report(path: Path, titles: set[str]) -> None:

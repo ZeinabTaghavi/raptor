@@ -189,7 +189,7 @@ class TreeRetriever(BaseRetriever):
 
         indices = indices_of_nearest_neighbors_from_distances(distances)
 
-        ordered_indices = indices[:FIXED_RETRIEVAL_TOP_K]
+        ordered_indices = indices[:top_k]
 
         total_tokens = 0
         for rank, idx in enumerate(ordered_indices, start=1):
@@ -208,7 +208,7 @@ class TreeRetriever(BaseRetriever):
         return selected_nodes, context, retrieved_nodes
 
     def retrieve_information(
-        self, current_nodes: List[Node], query: str, num_layers: int
+        self, current_nodes: List[Node], query: str, num_layers: int, top_k: int
     ) -> str:
         """
         Retrieves the most relevant information from the tree based on the query.
@@ -243,7 +243,7 @@ class TreeRetriever(BaseRetriever):
                 ]
 
             elif self.selection_mode == "top_k":
-                best_indices = indices[:FIXED_RETRIEVAL_TOP_K]
+                best_indices = indices[:top_k]
 
             nodes_to_add = [node_list[idx] for idx in best_indices]
 
@@ -305,7 +305,9 @@ class TreeRetriever(BaseRetriever):
         if num_layers > (start_layer + 1):
             raise ValueError("num_layers must be less than or equal to start_layer + 1")
 
-        effective_top_k = FIXED_RETRIEVAL_TOP_K
+        effective_top_k = self.top_k if top_k is None else top_k
+        if not isinstance(effective_top_k, int) or effective_top_k < 1:
+            raise ValueError("top_k must be an integer and at least 1")
 
         if collapse_tree:
             logging.info("Using collapsed_tree")
@@ -315,7 +317,7 @@ class TreeRetriever(BaseRetriever):
         else:
             layer_nodes = self.tree.layer_to_nodes[start_layer]
             selected_nodes, context, retrieved_nodes = self.retrieve_information(
-                layer_nodes, query, num_layers
+                layer_nodes, query, num_layers, effective_top_k
             )
 
         return {
@@ -359,7 +361,7 @@ class TreeRetriever(BaseRetriever):
             query=query,
             start_layer=start_layer,
             num_layers=num_layers,
-            top_k=FIXED_RETRIEVAL_TOP_K,
+            top_k=top_k,
             max_tokens=max_tokens,
             collapse_tree=collapse_tree,
         )

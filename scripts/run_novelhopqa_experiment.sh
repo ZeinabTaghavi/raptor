@@ -17,7 +17,13 @@ export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1,2,3}"
 export NOVELHOPQA_BOOKS_ROOT="${NOVELHOPQA_BOOKS_ROOT:-../passing_meta_tag/novelhopqa/book-corpus-root}"
 export NOVELHOPQA_SUBSET_MODE="${NOVELHOPQA_SUBSET_MODE:-1}"
 
+TOP_K="${TOP_K:-10}"
+OUTPUT_ROOT="${OUTPUT_ROOT:-raptor_${TOP_K}_runs}"
+export NOVELHOPQA_REPORT_DIR="${NOVELHOPQA_REPORT_DIR:-${OUTPUT_ROOT}/novelhopqa/_loader_reports}"
+
 python scripts/run_raptor_experiment.py \
   --dataset-name novelhopqa \
   --default-yaml configs/experiments/novelhopqa_retrieval_ablation.yaml \
+  --output-root "${OUTPUT_ROOT}" \
+  --retrieval-top-k "${TOP_K}" \
   "$@"

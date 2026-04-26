@@ -1,29 +1,29 @@
 {
-  "created_at_utc": "2026-04-26T09:25:44.432003+00:00",
+  "created_at_utc": "2026-04-26T14:35:42.151067+00:00",
   "input_files_used": {
-    "run_dir": "/home/iataghav/raptor/raptor_runs/qasper/qasper_retrieval_ablation_raptor",
+    "run_dir": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_10_runs/qasper/qasper_retrieval_ablation_raptor",
     "retrieval_file": null,
-    "answers_file": "/home/iataghav/raptor/raptor_runs/qasper/qasper_retrieval_ablation_raptor/rag/qa_predictions.jsonl",
-    "labels_file": "/home/iataghav/raptor/raptor_runs/qasper/qasper_retrieval_ablation_raptor/selection/qa_entries.json",
-    "query_times_file": "/home/iataghav/raptor/raptor_runs/qasper/qasper_retrieval_ablation_raptor/profiling/query_times.jsonl",
-    "resource_usage_file": "/home/iataghav/raptor/raptor_runs/qasper/qasper_retrieval_ablation_raptor/profiling/resource_usage.jsonl",
-    "run_manifest_file": "/home/iataghav/raptor/raptor_runs/qasper/qasper_retrieval_ablation_raptor/run_manifest.json"
+    "answers_file": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_10_runs/qasper/qasper_retrieval_ablation_raptor/rag/qa_predictions.jsonl",
+    "labels_file": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_10_runs/qasper/qasper_retrieval_ablation_raptor/selection/qa_entries.json",
+    "query_times_file": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_10_runs/qasper/qasper_retrieval_ablation_raptor/profiling/query_times.jsonl",
+    "resource_usage_file": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_10_runs/qasper/qasper_retrieval_ablation_raptor/profiling/resource_usage.jsonl",
+    "run_manifest_file": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_10_runs/qasper/qasper_retrieval_ablation_raptor/run_manifest.json"
   },
   "output_files_written": {
-    "metrics_summary": "/home/iataghav/raptor/raptor_evaluations/qasper/qasper_retrieval_ablation_raptor/metrics_summary.json",
-    "metrics_per_query": "/home/iataghav/raptor/raptor_evaluations/qasper/qasper_retrieval_ablation_raptor/metrics_per_query.jsonl",
-    "leaderboard_row": "/home/iataghav/raptor/raptor_evaluations/qasper/qasper_retrieval_ablation_raptor/leaderboard_row.json",
-    "evaluation_manifest": "/home/iataghav/raptor/raptor_evaluations/qasper/qasper_retrieval_ablation_raptor/evaluation_manifest.json"
+    "metrics_summary": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_10_evaluations/qasper/qasper_retrieval_ablation_raptor/metrics_summary.json",
+    "metrics_per_query": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_10_evaluations/qasper/qasper_retrieval_ablation_raptor/metrics_per_query.jsonl",
+    "leaderboard_row": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_10_evaluations/qasper/qasper_retrieval_ablation_raptor/leaderboard_row.json",
+    "evaluation_manifest": "/Users/hslu-n0008110/Library/CloudStorage/OneDrive-HochschuleLuzern/Desktop/raptor/raptor_10_evaluations/qasper/qasper_retrieval_ablation_raptor/evaluation_manifest.json"
   },
   "retrieval_effectiveness_metrics_reported": false,
   "generation_evaluated_from_top_k": 10,
   "bertscore_configuration": {
     "model": "roberta-large",
     "lang": "en",
-    "batch_size": 8,
-    "device": "cuda:0",
+    "batch_size": 16,
+    "device": null,
     "rescale_with_baseline": false,
-    "disabled": false,
+    "disabled": true,
     "allow_missing": false
   },
   "assumptions": [
@@ -32,13 +32,15 @@
     "RAPTOR compact reports are generation-focused by default; chunk-level retrieval effectiveness metrics are omitted unless --include-retrieval-metrics is set.",
     "metrics_per_query.jsonl intentionally excludes full contexts, retrieved ids, relevance labels, and raw node traces."
   ],
-  "missing_metrics_and_reasons": {},
-  "command_used": "scripts/evaluate_rag_run.py --run-dir raptor_runs/qasper/qasper_retrieval_ablation_raptor --dataset-name qasper --method-name raptor --output-dir raptor_evaluations --ks 5 10 --generation-top-k 10 --bert-score-device cuda:0 --bert-score-batch-size 8",
+  "missing_metrics_and_reasons": {
+    "bertscore": "BERTScore disabled by --disable-bert-score."
+  },
+  "command_used": "scripts/evaluate_rag_run.py --run-dir raptor_10_runs/qasper/qasper_retrieval_ablation_raptor --dataset-name qasper --method-name raptor --output-dir raptor_10_evaluations --ks 5 10 --generation-top-k 10 --split test --disable-bert-score",
   "package_versions": {
-    "python": "3.12.3",
-    "bert-score": "0.3.13",
-    "torch": "2.9.1",
-    "transformers": "4.57.6"
+    "python": "3.12.6",
+    "bert-score": null,
+    "torch": "2.10.0",
+    "transformers": "5.0.0"
   },
   "source_run_manifest": {
     "created_at_utc": "2026-04-12T18:37:24.889904+00:00",

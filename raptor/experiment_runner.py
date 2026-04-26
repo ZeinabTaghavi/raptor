@@ -830,6 +830,7 @@ def resolve_run_config(
     default_yaml_path: str,
     run_name: Optional[str] = None,
     output_root: Optional[str] = None,
+    retrieval_top_k_override: Optional[int] = None,
     resume: bool = False,
 ):
     yaml_path = Path(default_yaml_path).resolve()
@@ -892,6 +893,9 @@ def resolve_run_config(
     )
     if retrieval_top_k_path:
         mapped_fields.append(f"Mapped retrieval top_k from {retrieval_top_k_path}.")
+    if retrieval_top_k_override is not None:
+        retrieval_top_k = int(retrieval_top_k_override)
+        mapped_fields.append(f"Overrode retrieval top_k from CLI with {retrieval_top_k}.")
 
     chunk_size, chunk_size_path = _first_present(
         raw_reference,
@@ -1068,7 +1072,7 @@ def resolve_run_config(
     resolved_output_root = (
         output_root
         or explicit_config.get("output_root")
-        or "raptor_runs"
+        or "raptor_10_runs"
     )
 
     normalized_loader_name = None
@@ -1380,7 +1384,7 @@ def resolve_run_config(
         )
     if raw_reference.get("output_dir") is not None and not explicit_config.get("output_root"):
         notes.append(
-            "Ignored output_dir from the source YAML and used the RAPTOR default output root structure under raptor_runs/<dataset>/<run_name>."
+            "Ignored output_dir from the source YAML and used the RAPTOR default output root structure under raptor_<top_k>_runs/<dataset>/<run_name>."
         )
     if not Path(resolved_output_root).is_absolute():
         notes.append(
@@ -1425,6 +1429,7 @@ def run_experiment(
     default_yaml_path: str,
     run_name: Optional[str] = None,
     output_root: Optional[str] = None,
+    retrieval_top_k: Optional[int] = None,
     resume: bool = False,
 ):
     resolved_config, notes = resolve_run_config(
@@ -1432,6 +1437,7 @@ def run_experiment(
         default_yaml_path=default_yaml_path,
         run_name=run_name,
         output_root=output_root,
+        retrieval_top_k_override=retrieval_top_k,
         resume=resume,
     )
 
@@ -1608,7 +1614,7 @@ def run_experiment(
             TreeRetrieverConfig(
                 tokenizer=tokenizer,
                 threshold=float(retrieval_settings["threshold"]),
-                top_k=FIXED_RETRIEVAL_TOP_K,
+                top_k=int(retrieval_settings["top_k"]),
                 selection_mode=retrieval_settings["selection_mode"],
                 context_embedding_model="primary",
                 embedding_model=embedding_model,
@@ -1628,7 +1634,7 @@ def run_experiment(
                 query=qa_entry.question,
                 start_layer=retrieval_settings["start_layer"],
                 num_layers=retrieval_settings["num_layers"],
-                top_k=FIXED_RETRIEVAL_TOP_K,
+                top_k=int(retrieval_settings["top_k"]),
                 max_tokens=int(retrieval_settings["max_tokens"]),
                 collapse_tree=bool(retrieval_settings["collapse_tree"]),
             )
@@ -1664,7 +1670,7 @@ def run_experiment(
                 "retrieval_latency_ms": round(retrieval_latency_ms, 3),
                 "retrieval_config": {
                     **dict(retrieval_settings),
-                    "top_k": FIXED_RETRIEVAL_TOP_K,
+                    "top_k": int(retrieval_settings["top_k"]),
                 },
             }
             _append_jsonl(retrieval_payloads_path, retrieval_artifact)

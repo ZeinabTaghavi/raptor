@@ -21,7 +21,6 @@ import yaml
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "raptor_evaluations"
 RETRIEVAL_METRIC_PREFIXES = ("recall", "mrr", "ndcg", "hit_rate")
 RAG_METRIC_KEYS = (
     "exact_match",
@@ -73,10 +72,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output-dir",
-        default=str(DEFAULT_OUTPUT_ROOT),
+        default=None,
         help=(
             "Evaluation output root. Results are written under "
-            "<output-dir>/<dataset-name>/<run-name>. Defaults to 'raptor_evaluations'."
+            "<output-dir>/<dataset-name>/<run-name>. Defaults to "
+            "'raptor_<generation-top-k>_evaluations'."
         ),
     )
     parser.add_argument("--method-name", required=True, help="Comparable method name, e.g. raptor.")
@@ -1024,7 +1024,8 @@ def main() -> None:
     if any(k <= 0 for k in ks):
         raise SystemExit("--ks values must be positive integers.")
 
-    output_root = Path(args.output_dir).expanduser()
+    output_root_value = args.output_dir or f"raptor_{args.generation_top_k}_evaluations"
+    output_root = Path(output_root_value).expanduser()
     if not output_root.is_absolute():
         output_root = (PROJECT_ROOT / output_root).resolve()
     output_dir = output_root / sanitize_component(dataset_name) / sanitize_component(run_name)
