@@ -152,23 +152,22 @@ python scripts/evaluate_rag_run.py \
   --split test \
   --method-name raptor \
   --output-dir raptor_evaluations \
-  --ks 5 10 \
   --generation-top-k 10
 ```
 
 The script writes `metrics_summary.json`, `metrics_per_query.jsonl`,
 `leaderboard_row.json`, and `evaluation_manifest.json` under
-`raptor_evaluations/<dataset-name>/<run-name>/`. It reads
-`retrieval/retrieval_payloads.jsonl`, `rag/qa_predictions.jsonl`, and, by
-default, `selection/qa_entries.json`. Pass `--labels-file` when chunk-level
-`gold_chunk_ids`, `silver_chunk_ids`, or `silver_chunk_groups` live elsewhere.
+`raptor_evaluations/<dataset-name>/<run-name>/`. By default it reads
+`rag/qa_predictions.jsonl` plus `selection/qa_entries.json` for references and
+writes generation-focused compact reports. Retrieval effectiveness metrics are
+omitted by default for RAPTOR paper reporting; pass `--include-retrieval-metrics`
+only if you also provide explicit chunk-level labels.
 
-Retrieval metrics are reported at `@5` and `@10` only when explicit chunk-level
-labels are available. The evaluator expands RAPTOR internal nodes to descendant
-leaf chunk ids before scoring and never uses `doc_id` as a fallback relevance
-label. Generation metrics evaluate the already-generated answers and record
-`generation_top_k = 10` in the summary and manifest. BERTScore is optional at
-runtime; use `--disable-bert-score` to skip model loading.
+Generation metrics evaluate the already-generated answers and record
+`generation_top_k = 10` in the summary and manifest. The report includes EM,
+token F1, ROUGE-L, extracted-answer EM/F1, answer containment, and BERTScore.
+BERTScore is required unless you explicitly pass `--disable-bert-score` for
+smoke tests or `--allow-missing-bert-score` to preserve null fields.
 
 ### YAML Shape
 

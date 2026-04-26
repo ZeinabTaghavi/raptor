@@ -78,7 +78,7 @@ tree_builder_settings:
 retrieval_settings:
   start_layer: null
   num_layers: null
-  top_k: 5
+  top_k: 10
   max_tokens: 3500
   collapse_tree: true
   threshold: 0.5

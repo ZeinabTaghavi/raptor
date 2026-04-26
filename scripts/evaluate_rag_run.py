@@ -17,6 +17,8 @@ from importlib import metadata
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
+import yaml
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = PROJECT_ROOT / "raptor_evaluations"
@@ -25,6 +27,9 @@ RAG_METRIC_KEYS = (
     "exact_match",
     "token_f1",
     "rouge_l",
+    "exact_match_extracted",
+    "token_f1_extracted",
+    "answer_containment",
     "bertscore_precision",
     "bertscore_recall",
     "bertscore_f1",
@@ -77,7 +82,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--method-name", required=True, help="Comparable method name, e.g. raptor.")
     parser.add_argument("--dataset-name", help="Dataset name. Defaults to run manifest when available.")
     parser.add_argument("--split", help="Dataset split. Defaults to labels metadata when available.")
-    parser.add_argument("--ks", nargs="+", type=int, default=[5, 10], help="Retrieval cutoffs.")
+    parser.add_argument(
+        "--ks",
+        nargs="+",
+        type=int,
+        default=[5, 10],
+        help="Retrieval cutoffs used only when --include-retrieval-metrics is set.",
+    )
     parser.add_argument(
         "--generation-top-k",
         type=int,
@@ -89,13 +100,33 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Write null BERTScore metrics without loading the BERTScore model.",
     )
+    parser.add_argument(
+        "--allow-missing-bert-score",
+        action="store_true",
+        help=(
+            "Continue and write null BERTScore fields if import or computation fails. "
+            "By default, enabled BERTScore must produce numeric values."
+        ),
+    )
+    parser.add_argument(
+        "--include-retrieval-metrics",
+        action="store_true",
+        help=(
+            "Also compute and report chunk-level retrieval metrics. Disabled by default "
+            "for RAPTOR paper reporting, which is generation-focused."
+        ),
+    )
     parser.add_argument("--bert-score-model", default="roberta-large")
     parser.add_argument("--bert-score-lang", default="en")
     parser.add_argument("--bert-score-batch-size", type=int, default=16)
     parser.add_argument(
         "--bert-score-device",
-        default="cpu",
-        help="Device passed to bert_score.score, e.g. cuda:0 or cpu.",
+        help="Optional device passed to bert_score.score, e.g. cuda:0 or cpu.",
+    )
+    parser.add_argument(
+        "--bert-score-rescale-with-baseline",
+        action="store_true",
+        help="Use bert-score baseline rescaling when available.",
     )
     return parser
 
@@ -105,6 +136,17 @@ def package_version(package_name: str) -> Optional[str]:
         return metadata.version(package_name)
     except metadata.PackageNotFoundError:
         return None
+
+
+def required_bert_score_error_message(error: str) -> str:
+    return (
+        f"{error}\n\n"
+        "BERTScore is enabled, so RAPTOR generation evaluation cannot be reported "
+        "with null BERTScore fields. Install it in the same environment, for example:\n"
+        "  python3 -m pip install 'bert-score>=0.3.13'\n\n"
+        "For smoke tests only, pass --disable-bert-score. To preserve the old "
+        "soft-missing behavior, pass --allow-missing-bert-score."
+    )
 
 
 def read_json(path: Path) -> Any:
@@ -578,6 +620,27 @@ def rouge_l_pair(prediction: str, reference: str) -> float:
     return 2 * precision * recall / (precision + recall)
 
 
+def extract_short_answer(prediction: str) -> str:
+    text = prediction.strip()
+    match = re.search(r"\banswer\s+is\s+(.+)", text, flags=re.IGNORECASE | re.DOTALL)
+    if match:
+        text = match.group(1).strip()
+    match = re.search(r"\banswer\s*:\s*(.+)", text, flags=re.IGNORECASE | re.DOTALL)
+    if match:
+        text = match.group(1).strip()
+    if "." in text:
+        text = text.split(".", 1)[0]
+    return text.strip()
+
+
+def answer_containment(prediction: str, references: Sequence[str]) -> Optional[float]:
+    normalized_refs = [normalize_answer(reference) for reference in references if normalize_answer(reference)]
+    if not normalized_refs:
+        return None
+    normalized_prediction = normalize_answer(prediction)
+    return 1.0 if any(reference in normalized_prediction for reference in normalized_refs) else 0.0
+
+
 def generation_metrics_without_bertscore(
     prediction: Optional[str],
     references: Sequence[str],
@@ -589,6 +652,10 @@ def generation_metrics_without_bertscore(
     metrics["exact_match"] = exact_match(prediction, references)
     metrics["token_f1"] = max(token_f1_pair(prediction, reference) for reference in references)
     metrics["rouge_l"] = max(rouge_l_pair(prediction, reference) for reference in references)
+    extracted_answer = extract_short_answer(prediction)
+    metrics["exact_match_extracted"] = exact_match(extracted_answer, references)
+    metrics["token_f1_extracted"] = max(token_f1_pair(extracted_answer, reference) for reference in references)
+    metrics["answer_containment"] = answer_containment(prediction, references)
     return metrics
 
 
@@ -799,6 +866,23 @@ def infer_split(records: Sequence[Dict[str, Any]]) -> Optional[str]:
     return None
 
 
+def infer_split_from_run_config(run_dir: Path) -> Optional[str]:
+    for relative_path in ("config/raptor_run.yaml", "config/default_experiment.yaml"):
+        config_path = run_dir / relative_path
+        if not config_path.exists():
+            continue
+        try:
+            payload = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+        except Exception:
+            continue
+        if not isinstance(payload, dict):
+            continue
+        split = get_nested(payload, "raptor_run.dataset.split") or get_nested(payload, "dataset.split")
+        if split is not None:
+            return str(split)
+    return None
+
+
 def maybe_run_manifest(run_dir: Path) -> Dict[str, Any]:
     manifest_path = run_dir / "run_manifest.json"
     if manifest_path.exists():
@@ -858,16 +942,16 @@ def evaluate_bertscore(
     try:
         candidates = [candidate for _, candidate, _ in pairs]
         references = [reference for _, _, reference in pairs]
-        precision, recall, f1 = bert_score_score(
-            candidates,
-            references,
-            model_type=bertscore_config["model"],
-            lang=bertscore_config["lang"],
-            batch_size=bertscore_config["batch_size"],
-            device=bertscore_config["device"],
-            verbose=False,
-            rescale_with_baseline=False,
-        )
+        kwargs = {
+            "model_type": bertscore_config["model"],
+            "lang": bertscore_config["lang"],
+            "batch_size": bertscore_config["batch_size"],
+            "verbose": False,
+            "rescale_with_baseline": bertscore_config["rescale_with_baseline"],
+        }
+        if bertscore_config.get("device"):
+            kwargs["device"] = bertscore_config["device"]
+        precision, recall, f1 = bert_score_score(candidates, references, **kwargs)
     except Exception as exc:  # pragma: no cover - model availability is environment dependent.
         return f"BERTScore could not be computed: {exc}", versions
 
@@ -917,7 +1001,7 @@ def main() -> None:
     query_times_file = run_dir / "profiling" / "query_times.jsonl"
     resource_usage_file = run_dir / "profiling" / "resource_usage.jsonl"
 
-    retrieval_records = read_records(retrieval_file)
+    retrieval_records = read_records(retrieval_file) if args.include_retrieval_metrics else []
     prediction_records = read_records(predictions_file)
     label_records = read_records(labels_file)
     query_times = load_query_times(run_dir)
@@ -927,7 +1011,13 @@ def main() -> None:
     prediction_by_query, prediction_by_doc_question = index_records(prediction_records)
     labels_by_query, labels_by_doc_question = index_records(label_records)
 
-    split = str(args.split or infer_split(label_records) or infer_split(prediction_records) or "unknown")
+    split = str(
+        args.split
+        or infer_split(label_records)
+        or infer_split(prediction_records)
+        or infer_split_from_run_config(run_dir)
+        or "unknown"
+    )
     ks = sorted(dict.fromkeys(args.ks))
     if not ks:
         raise SystemExit("--ks must contain at least one positive integer.")
@@ -940,12 +1030,16 @@ def main() -> None:
     output_dir = output_root / sanitize_component(dataset_name) / sanitize_component(run_name)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    label_presence = label_fields_present(label_records)
+    label_presence = label_fields_present(label_records) if args.include_retrieval_metrics else {
+        "gold_chunk_ids": False,
+        "silver_chunk_ids": False,
+        "silver_chunk_groups": False,
+    }
     explicit_chunk_relevance_found = any(label_presence.values())
     row_count = max(len(retrieval_records), len(prediction_records))
     if row_count == 0:
         raise SystemExit(
-            "No query records found. Expected retrieval/retrieval_payloads.jsonl or rag/qa_predictions.jsonl."
+            "No generation query records found. Expected rag/qa_predictions.jsonl."
         )
 
     expansion_notes: List[str] = []
@@ -1013,15 +1107,22 @@ def main() -> None:
                 label_record = None
         if label_record is None:
             label_record = find_matching_record(query_id, doc_id, question, labels_by_query, labels_by_doc_question)
-        labels = labels_from_record(label_record or {})
+        labels = labels_from_record(label_record or {}) if args.include_retrieval_metrics else {
+            "gold_chunk_ids": [],
+            "silver_chunk_ids": [],
+            "silver_chunk_groups": [],
+        }
 
-        retrieved_ids, retrieved_scores = extract_retrieved_leaf_ids(
-            retrieval_record,
-            prediction_record,
-            run_dir,
-            node_cache,
-            expansion_notes,
-        )
+        if args.include_retrieval_metrics:
+            retrieved_ids, retrieved_scores = extract_retrieved_leaf_ids(
+                retrieval_record,
+                prediction_record,
+                run_dir,
+                node_cache,
+                expansion_notes,
+            )
+        else:
+            retrieved_ids, retrieved_scores = [], []
 
         references = record_references(prediction_record or {}) or record_references(label_record or {})
         prediction = record_prediction(prediction_record or {})
@@ -1056,23 +1157,27 @@ def main() -> None:
             field_numeric(resource_record, ("peak_gpu_memory_mb", "max_gpu_memory_mb", "gpu_peak_memory_mb")),
         )
 
-        gold_eligible, gold_metrics = flat_retrieval_metrics(retrieved_ids, labels["gold_chunk_ids"], ks)
-        silver_loose_eligible, silver_loose_metrics = flat_retrieval_metrics(
-            retrieved_ids,
-            labels["silver_chunk_ids"],
-            ks,
-        )
-        silver_strict_eligible, silver_strict_metrics = strict_group_metrics(
-            retrieved_ids,
-            labels["silver_chunk_groups"],
-            ks,
-        )
-        union_eligible, union_view_metrics = union_metrics(
-            retrieved_ids,
-            labels["gold_chunk_ids"],
-            labels["silver_chunk_groups"],
-            ks,
-        )
+        if args.include_retrieval_metrics:
+            gold_eligible, gold_metrics = flat_retrieval_metrics(retrieved_ids, labels["gold_chunk_ids"], ks)
+            silver_loose_eligible, silver_loose_metrics = flat_retrieval_metrics(
+                retrieved_ids,
+                labels["silver_chunk_ids"],
+                ks,
+            )
+            silver_strict_eligible, silver_strict_metrics = strict_group_metrics(
+                retrieved_ids,
+                labels["silver_chunk_groups"],
+                ks,
+            )
+            union_eligible, union_view_metrics = union_metrics(
+                retrieved_ids,
+                labels["gold_chunk_ids"],
+                labels["silver_chunk_groups"],
+                ks,
+            )
+        else:
+            gold_eligible = silver_loose_eligible = silver_strict_eligible = union_eligible = False
+            gold_metrics = silver_loose_metrics = silver_strict_metrics = union_view_metrics = null_retrieval_metrics(ks)
 
         query_rows.append(
             {
@@ -1106,39 +1211,47 @@ def main() -> None:
             }
         )
 
-    by_view = {
-        view: aggregate_metric_rows(query_rows, view, ks)
-        for view in ("gold", "silver_loose", "silver_strict", "union")
-    }
-
-    if by_view["gold"]["eligible_queries"] > 0:
-        primary_relevance = "gold"
-    elif by_view["silver_loose"]["eligible_queries"] > 0:
-        primary_relevance = "silver_loose"
-    elif by_view["silver_strict"]["eligible_queries"] > 0:
-        primary_relevance = "silver_strict"
-    else:
-        primary_relevance = None
-
-    if primary_relevance:
-        retrieval_metrics = {
-            key: by_view[primary_relevance].get(key)
-            for key in retrieval_metric_keys(ks)
+    if args.include_retrieval_metrics:
+        by_view = {
+            view: aggregate_metric_rows(query_rows, view, ks)
+            for view in ("gold", "silver_loose", "silver_strict", "union")
         }
+
+        if by_view["gold"]["eligible_queries"] > 0:
+            primary_relevance = "gold"
+        elif by_view["silver_loose"]["eligible_queries"] > 0:
+            primary_relevance = "silver_loose"
+        elif by_view["silver_strict"]["eligible_queries"] > 0:
+            primary_relevance = "silver_strict"
+        else:
+            primary_relevance = None
+
+        if primary_relevance:
+            retrieval_metrics = {
+                key: by_view[primary_relevance].get(key)
+                for key in retrieval_metric_keys(ks)
+            }
+        else:
+            retrieval_metrics = null_retrieval_metrics(ks)
     else:
-        retrieval_metrics = null_retrieval_metrics(ks)
+        by_view = {}
+        primary_relevance = None
+        retrieval_metrics = {}
 
     bertscore_config = {
         "model": args.bert_score_model,
         "lang": args.bert_score_lang,
         "batch_size": args.bert_score_batch_size,
         "device": args.bert_score_device,
+        "rescale_with_baseline": args.bert_score_rescale_with_baseline,
     }
     bertscore_reason, bertscore_versions = evaluate_bertscore(
         query_rows=query_rows,
         bertscore_config=bertscore_config,
         disabled=args.disable_bert_score,
     )
+    if bertscore_reason and not args.disable_bert_score and not args.allow_missing_bert_score:
+        raise SystemExit(required_bert_score_error_message(bertscore_reason))
 
     rag_metrics = {
         key: mean([
@@ -1155,26 +1268,27 @@ def main() -> None:
     }
 
     missing_metrics_reasons: Dict[str, str] = {}
-    if not explicit_chunk_relevance_found:
-        missing_metrics_reasons["retrieval_metrics"] = (
-            "No explicit chunk-level gold_chunk_ids, silver_chunk_ids, or "
-            "silver_chunk_groups fields were found in the labels file. doc_id was not "
-            "used as a fallback relevance id."
-        )
-    elif primary_relevance is None:
-        missing_metrics_reasons["retrieval_metrics"] = (
-            "Chunk-level relevance fields were present but no evaluated query had "
-            "non-empty relevance labels."
-        )
+    if args.include_retrieval_metrics:
+        if not explicit_chunk_relevance_found:
+            missing_metrics_reasons["retrieval_metrics"] = (
+                "No explicit chunk-level gold_chunk_ids, silver_chunk_ids, or "
+                "silver_chunk_groups fields were found in the labels file. doc_id was not "
+                "used as a fallback relevance id."
+            )
+        elif primary_relevance is None:
+            missing_metrics_reasons["retrieval_metrics"] = (
+                "Chunk-level relevance fields were present but no evaluated query had "
+                "non-empty relevance labels."
+            )
 
     if bertscore_reason:
         missing_metrics_reasons["bertscore"] = bertscore_reason
-    if by_view["silver_strict"]["eligible_queries"] > 0:
+    if args.include_retrieval_metrics and by_view["silver_strict"]["eligible_queries"] > 0:
         missing_metrics_reasons["silver_strict_mrr_ndcg"] = (
             "silver_strict MRR and NDCG are null because strict relevance is defined "
             "as full evidence-group containment, not a flat relevant-id ranking."
         )
-    if by_view["union"]["eligible_queries"] > 0:
+    if args.include_retrieval_metrics and by_view["union"]["eligible_queries"] > 0:
         missing_metrics_reasons["union_recall_mrr_ndcg"] = (
             "union only reports HitRate@k as gold_hit@k OR silver_strict_hit@k; it "
             "does not flat-union gold and silver ids."
@@ -1182,7 +1296,7 @@ def main() -> None:
 
     per_query_rows: List[Dict[str, Any]] = []
     for row in query_rows:
-        if primary_relevance:
+        if args.include_retrieval_metrics and primary_relevance:
             primary_metrics = row["retrieval_by_view"][primary_relevance]["metrics"]
         else:
             primary_metrics = null_retrieval_metrics(ks)
@@ -1199,10 +1313,12 @@ def main() -> None:
             "query_id": row["query_id"],
             "doc_id": row["doc_id"],
             "question": row["question"],
-            **{key: primary_metrics[key] for key in retrieval_metric_keys(ks)},
             "exact_match": row["exact_match"],
             "token_f1": row["token_f1"],
             "rouge_l": row["rouge_l"],
+            "exact_match_extracted": row["exact_match_extracted"],
+            "token_f1_extracted": row["token_f1_extracted"],
+            "answer_containment": row["answer_containment"],
             "bertscore_precision": row["bertscore_precision"],
             "bertscore_recall": row["bertscore_recall"],
             "bertscore_f1": row["bertscore_f1"],
@@ -1211,13 +1327,15 @@ def main() -> None:
             "total_latency_ms": row["total_latency_ms"],
             "context_tokens": row["context_tokens"],
             "answer_tokens": row["answer_tokens"],
-            "retrieved_ids_top10": row["retrieved_ids_top10"],
-            "relevant_ids": relevant_ids,
         }
-        if primary_relevance == "silver_strict":
-            compact["relevant_groups"] = labels["silver_chunk_groups"]
-        if any(score is not None for score in row["_retrieved_scores_top10"]):
-            compact["retrieval_scores_top10"] = row["_retrieved_scores_top10"]
+        if args.include_retrieval_metrics:
+            compact.update({key: primary_metrics[key] for key in retrieval_metric_keys(ks)})
+            compact["retrieved_ids_top10"] = row["retrieved_ids_top10"]
+            compact["relevant_ids"] = relevant_ids
+            if primary_relevance == "silver_strict":
+                compact["relevant_groups"] = labels["silver_chunk_groups"]
+            if any(score is not None for score in row["_retrieved_scores_top10"]):
+                compact["retrieval_scores_top10"] = row["_retrieved_scores_top10"]
         per_query_rows.append(round_float(compact))
 
     summary = {
@@ -1226,14 +1344,19 @@ def main() -> None:
         "split": split,
         "run_name": run_name,
         "n_queries": len(query_rows),
-        "k_values": ks,
-        "primary_relevance": primary_relevance,
         "generation_top_k": args.generation_top_k,
-        "retrieval_metrics": retrieval_metrics,
-        "retrieval_metrics_by_relevance": by_view,
         "rag_metrics": rag_metrics,
         "efficiency": efficiency,
     }
+    if args.include_retrieval_metrics:
+        summary.update(
+            {
+                "k_values": ks,
+                "primary_relevance": primary_relevance,
+                "retrieval_metrics": retrieval_metrics,
+                "retrieval_metrics_by_relevance": by_view,
+            }
+        )
     summary = round_float(summary)
 
     leaderboard_row = {
@@ -1242,10 +1365,12 @@ def main() -> None:
         "split": split,
         "run_name": run_name,
         "generation_top_k": args.generation_top_k,
-        **{key: summary["retrieval_metrics"].get(key) for key in retrieval_metric_keys(ks)},
         "exact_match": summary["rag_metrics"]["exact_match"],
         "token_f1": summary["rag_metrics"]["token_f1"],
         "rouge_l": summary["rag_metrics"]["rouge_l"],
+        "exact_match_extracted": summary["rag_metrics"]["exact_match_extracted"],
+        "token_f1_extracted": summary["rag_metrics"]["token_f1_extracted"],
+        "answer_containment": summary["rag_metrics"]["answer_containment"],
         "bertscore_precision": summary["rag_metrics"]["bertscore_precision"],
         "bertscore_recall": summary["rag_metrics"]["bertscore_recall"],
         "bertscore_f1": summary["rag_metrics"]["bertscore_f1"],
@@ -1255,6 +1380,10 @@ def main() -> None:
         "context_tokens_mean": summary["efficiency"]["context_tokens"]["mean"],
         "peak_gpu_memory_mean_mb": summary["efficiency"]["peak_gpu_memory_mb"]["mean"],
     }
+    if args.include_retrieval_metrics:
+        leaderboard_row.update(
+            {key: summary["retrieval_metrics"].get(key) for key in retrieval_metric_keys(ks)}
+        )
     leaderboard_row = round_float(leaderboard_row)
 
     metrics_summary_path = output_dir / "metrics_summary.json"
@@ -1264,7 +1393,7 @@ def main() -> None:
 
     input_files = {
         "run_dir": str(run_dir),
-        "retrieval_file": str(retrieval_file) if retrieval_file.exists() else None,
+        "retrieval_file": str(retrieval_file) if args.include_retrieval_metrics and retrieval_file.exists() else None,
         "answers_file": str(predictions_file) if predictions_file.exists() else None,
         "labels_file": str(labels_file) if labels_file.exists() else None,
         "query_times_file": str(query_times_file) if query_times_file.exists() else None,
@@ -1282,34 +1411,20 @@ def main() -> None:
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "input_files_used": input_files,
         "output_files_written": output_files,
-        "relevance_source_used": str(labels_file) if labels_file.exists() else None,
-        "explicit_chunk_level_relevance_fields_found": explicit_chunk_relevance_found,
-        "chunk_level_relevance_field_presence": label_presence,
-        "primary_relevance_choice": primary_relevance,
-        "primary_relevance_choice_policy": (
-            "Prefer gold when any gold_chunk_ids are eligible; else silver_loose; "
-            "else silver_strict; else null."
-        ),
+        "retrieval_effectiveness_metrics_reported": bool(args.include_retrieval_metrics),
         "generation_evaluated_from_top_k": args.generation_top_k,
         "bertscore_configuration": {
             **bertscore_config,
             "disabled": bool(args.disable_bert_score),
+            "allow_missing": bool(args.allow_missing_bert_score),
         },
-        "raptor_node_to_leaf_expansion_method": (
-            "Use retrieval_payloads.expanded_retrieved_chunks when available. "
-            "Otherwise expand retrieved_nodes.node_index through "
-            "trees/<doc_id>/node_index.jsonl descendant_leaf_chunk_ids. "
-            "After expansion, deduplicate leaf chunk ids while preserving first occurrence."
-        ),
         "assumptions": [
             "Existing QA predictions are evaluated as-is; no retrieval, context construction, or answer generation is rerun.",
-            "Ranking metrics use expanded and deduplicated leaf chunk ids in the order emitted by the run.",
-            "doc_id is never used as a fallback relevance id for chunk-level retrieval metrics.",
-            "metrics_per_query.jsonl intentionally excludes full contexts and raw node traces.",
-            "Node-level raw traces remain in the original retrieval payloads and are referenced by the manifest instead of duplicated.",
+            f"Generation metrics correspond to generation_top_k = {args.generation_top_k}.",
+            "RAPTOR compact reports are generation-focused by default; chunk-level retrieval effectiveness metrics are omitted unless --include-retrieval-metrics is set.",
+            "metrics_per_query.jsonl intentionally excludes full contexts, retrieved ids, relevance labels, and raw node traces.",
         ],
         "missing_metrics_and_reasons": missing_metrics_reasons,
-        "node_expansion_notes": sorted(set(expansion_notes)),
         "command_used": " ".join(sys.argv),
         "package_versions": {
             "python": platform.python_version(),
@@ -1319,6 +1434,26 @@ def main() -> None:
         },
         "source_run_manifest": run_manifest,
     }
+    if args.include_retrieval_metrics:
+        manifest.update(
+            {
+                "relevance_source_used": str(labels_file) if labels_file.exists() else None,
+                "explicit_chunk_level_relevance_fields_found": explicit_chunk_relevance_found,
+                "chunk_level_relevance_field_presence": label_presence,
+                "primary_relevance_choice": primary_relevance,
+                "primary_relevance_choice_policy": (
+                    "Prefer gold when any gold_chunk_ids are eligible; else silver_loose; "
+                    "else silver_strict; else null."
+                ),
+                "raptor_node_to_leaf_expansion_method": (
+                    "Use retrieval_payloads.expanded_retrieved_chunks when available. "
+                    "Otherwise expand retrieved_nodes.node_index through "
+                    "trees/<doc_id>/node_index.jsonl descendant_leaf_chunk_ids. "
+                    "After expansion, deduplicate leaf chunk ids while preserving first occurrence."
+                ),
+                "node_expansion_notes": sorted(set(expansion_notes)),
+            }
+        )
     manifest = round_float(manifest)
 
     write_json(metrics_summary_path, summary)

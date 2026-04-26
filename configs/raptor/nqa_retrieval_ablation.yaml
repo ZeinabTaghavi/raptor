@@ -44,7 +44,7 @@ raptor_run:
     summarization_length: 150
     reduction_dimension: 10
   retrieval:
-    top_k: 5
+    top_k: 10
     max_tokens: 3500
     collapse_tree: true
     threshold: 0.5

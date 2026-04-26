@@ -28,7 +28,7 @@ class RetrievalAugmentationConfig:
         # TreeRetrieverConfig arguments
         tr_tokenizer=None,
         tr_threshold=0.5,
-        tr_top_k=5,
+        tr_top_k=10,
         tr_selection_mode="top_k",
         tr_context_embedding_model="OpenAI",
         tr_embedding_model=None,

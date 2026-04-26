@@ -14,14 +14,16 @@ Usage:
   scripts/run_rag_evaluation.sh RUN_DIR DATASET_NAME SPLIT METHOD_NAME [extra evaluate_rag_run.py args]
 
 Examples:
+  scripts/run_rag_evaluation.sh
+
+  # Smoke-test only; final reports should compute BERTScore.
   scripts/run_rag_evaluation.sh --disable-bert-score
 
   scripts/run_rag_evaluation.sh \
     raptor_runs/qasper/qasper_retrieval_ablation_raptor \
     qasper \
     test \
-    raptor \
-    --disable-bert-score
+    raptor
 USAGE
 }
 
@@ -32,25 +34,26 @@ run_one() {
   local method_name="$4"
   shift 4
 
-  if [[ ! -f "$run_dir/retrieval/retrieval_payloads.jsonl" ]]; then
-    echo "Skipping $run_dir: missing retrieval/retrieval_payloads.jsonl" >&2
-    return 0
-  fi
   if [[ ! -f "$run_dir/rag/qa_predictions.jsonl" ]]; then
     echo "Skipping $run_dir: missing rag/qa_predictions.jsonl" >&2
     return 0
   fi
 
-  echo "Evaluating dataset=$dataset_name split=$split run=$run_dir" >&2
-  python scripts/evaluate_rag_run.py \
-    --run-dir "$run_dir" \
-    --dataset-name "$dataset_name" \
-    --split "$split" \
-    --method-name "$method_name" \
-    --output-dir raptor_evaluations \
-    --ks 5 10 \
-    --generation-top-k 10 \
-    "$@"
+  echo "Evaluating dataset=$dataset_name split=${split:-auto} run=$run_dir" >&2
+  command=(
+    python scripts/evaluate_rag_run.py
+    --run-dir "$run_dir"
+    --dataset-name "$dataset_name"
+    --method-name "$method_name"
+    --output-dir raptor_evaluations
+    --ks 5 10
+    --generation-top-k 10
+  )
+  if [[ -n "${split//[[:space:]]/}" ]]; then
+    command+=(--split "$split")
+  fi
+  command+=("$@")
+  "${command[@]}"
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
@@ -78,7 +81,7 @@ if [[ $# -gt 0 && "${1:0:1}" != "-" ]]; then
 fi
 
 METHOD_NAME="${METHOD_NAME:-raptor}"
-SPLIT="${SPLIT:-test}"
+SPLIT="${SPLIT:-}"
 found=0
 
 while IFS= read -r -d '' run_dir; do

@@ -38,7 +38,7 @@ class TreeRetrieverConfig:
         self.threshold = threshold
 
         if top_k is None:
-            top_k = 5
+            top_k = FIXED_RETRIEVAL_TOP_K
         if not isinstance(top_k, int) or top_k < 1:
             raise ValueError("top_k must be an integer and at least 1")
         self.top_k = top_k

@@ -1319,7 +1319,7 @@ def resolve_run_config(
             "top_k": explicit_config.get("retrieval", {}).get(
                 "top_k", retrieval_top_k
             )
-            or 5,
+            or FIXED_RETRIEVAL_TOP_K,
             "max_tokens": explicit_config.get("retrieval", {}).get("max_tokens", 3500),
             "collapse_tree": explicit_config.get("retrieval", {}).get("collapse_tree", True),
             "threshold": explicit_config.get("retrieval", {}).get("threshold", 0.5),
