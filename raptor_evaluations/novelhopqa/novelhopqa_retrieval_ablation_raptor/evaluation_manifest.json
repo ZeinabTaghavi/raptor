@@ -1,8 +1,8 @@
 {
-  "created_at_utc": "2026-04-26T08:38:21.368478+00:00",
+  "created_at_utc": "2026-04-26T09:25:34.881581+00:00",
   "input_files_used": {
     "run_dir": "/home/iataghav/raptor/raptor_runs/novelhopqa/novelhopqa_retrieval_ablation_raptor",
-    "retrieval_file": "/home/iataghav/raptor/raptor_runs/novelhopqa/novelhopqa_retrieval_ablation_raptor/retrieval/retrieval_payloads.jsonl",
+    "retrieval_file": null,
     "answers_file": "/home/iataghav/raptor/raptor_runs/novelhopqa/novelhopqa_retrieval_ablation_raptor/rag/qa_predictions.jsonl",
     "labels_file": "/home/iataghav/raptor/raptor_runs/novelhopqa/novelhopqa_retrieval_ablation_raptor/selection/qa_entries.json",
     "query_times_file": "/home/iataghav/raptor/raptor_runs/novelhopqa/novelhopqa_retrieval_ablation_raptor/profiling/query_times.jsonl",
@@ -15,40 +15,28 @@
     "leaderboard_row": "/home/iataghav/raptor/raptor_evaluations/novelhopqa/novelhopqa_retrieval_ablation_raptor/leaderboard_row.json",
     "evaluation_manifest": "/home/iataghav/raptor/raptor_evaluations/novelhopqa/novelhopqa_retrieval_ablation_raptor/evaluation_manifest.json"
   },
-  "relevance_source_used": "/home/iataghav/raptor/raptor_runs/novelhopqa/novelhopqa_retrieval_ablation_raptor/selection/qa_entries.json",
-  "explicit_chunk_level_relevance_fields_found": false,
-  "chunk_level_relevance_field_presence": {
-    "gold_chunk_ids": false,
-    "silver_chunk_ids": false,
-    "silver_chunk_groups": false
-  },
-  "primary_relevance_choice": null,
-  "primary_relevance_choice_policy": "Prefer gold when any gold_chunk_ids are eligible; else silver_loose; else silver_strict; else null.",
+  "retrieval_effectiveness_metrics_reported": false,
   "generation_evaluated_from_top_k": 10,
   "bertscore_configuration": {
     "model": "roberta-large",
     "lang": "en",
-    "batch_size": 16,
-    "device": "cpu",
-    "disabled": false
+    "batch_size": 8,
+    "device": "cuda:0",
+    "rescale_with_baseline": false,
+    "disabled": false,
+    "allow_missing": false
   },
-  "raptor_node_to_leaf_expansion_method": "Use retrieval_payloads.expanded_retrieved_chunks when available. Otherwise expand retrieved_nodes.node_index through trees/<doc_id>/node_index.jsonl descendant_leaf_chunk_ids. After expansion, deduplicate leaf chunk ids while preserving first occurrence.",
   "assumptions": [
     "Existing QA predictions are evaluated as-is; no retrieval, context construction, or answer generation is rerun.",
-    "Ranking metrics use expanded and deduplicated leaf chunk ids in the order emitted by the run.",
-    "doc_id is never used as a fallback relevance id for chunk-level retrieval metrics.",
-    "metrics_per_query.jsonl intentionally excludes full contexts and raw node traces.",
-    "Node-level raw traces remain in the original retrieval payloads and are referenced by the manifest instead of duplicated."
+    "Generation metrics correspond to generation_top_k = 10.",
+    "RAPTOR compact reports are generation-focused by default; chunk-level retrieval effectiveness metrics are omitted unless --include-retrieval-metrics is set.",
+    "metrics_per_query.jsonl intentionally excludes full contexts, retrieved ids, relevance labels, and raw node traces."
   ],
-  "missing_metrics_and_reasons": {
-    "retrieval_metrics": "No explicit chunk-level gold_chunk_ids, silver_chunk_ids, or silver_chunk_groups fields were found in the labels file. doc_id was not used as a fallback relevance id.",
-    "bertscore": "BERTScore package could not be imported: No module named 'bert_score'"
-  },
-  "node_expansion_notes": [],
-  "command_used": "scripts/evaluate_rag_run.py --run-dir raptor_runs/novelhopqa/novelhopqa_retrieval_ablation_raptor --dataset-name novelhopqa --split test --method-name raptor --output-dir raptor_evaluations --ks 5 10 --generation-top-k 10",
+  "missing_metrics_and_reasons": {},
+  "command_used": "scripts/evaluate_rag_run.py --run-dir raptor_runs/novelhopqa/novelhopqa_retrieval_ablation_raptor --dataset-name novelhopqa --method-name raptor --output-dir raptor_evaluations --ks 5 10 --generation-top-k 10 --bert-score-device cuda:0 --bert-score-batch-size 8",
   "package_versions": {
     "python": "3.12.3",
-    "bert-score": null,
+    "bert-score": "0.3.13",
     "torch": "2.9.1",
     "transformers": "4.57.6"
   },

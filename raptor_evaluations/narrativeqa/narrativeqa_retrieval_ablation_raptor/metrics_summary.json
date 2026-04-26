@@ -4,75 +4,17 @@
   "split": "test",
   "run_name": "narrativeqa_retrieval_ablation_raptor",
   "n_queries": 765,
-  "k_values": [
-    5,
-    10
-  ],
-  "primary_relevance": null,
   "generation_top_k": 10,
-  "retrieval_metrics": {
-    "recall@5": null,
-    "recall@10": null,
-    "mrr@5": null,
-    "mrr@10": null,
-    "ndcg@5": null,
-    "ndcg@10": null,
-    "hit_rate@5": null,
-    "hit_rate@10": null
-  },
-  "retrieval_metrics_by_relevance": {
-    "gold": {
-      "recall@5": null,
-      "recall@10": null,
-      "mrr@5": null,
-      "mrr@10": null,
-      "ndcg@5": null,
-      "ndcg@10": null,
-      "hit_rate@5": null,
-      "hit_rate@10": null,
-      "eligible_queries": 0
-    },
-    "silver_loose": {
-      "recall@5": null,
-      "recall@10": null,
-      "mrr@5": null,
-      "mrr@10": null,
-      "ndcg@5": null,
-      "ndcg@10": null,
-      "hit_rate@5": null,
-      "hit_rate@10": null,
-      "eligible_queries": 0
-    },
-    "silver_strict": {
-      "recall@5": null,
-      "recall@10": null,
-      "mrr@5": null,
-      "mrr@10": null,
-      "ndcg@5": null,
-      "ndcg@10": null,
-      "hit_rate@5": null,
-      "hit_rate@10": null,
-      "eligible_queries": 0
-    },
-    "union": {
-      "recall@5": null,
-      "recall@10": null,
-      "mrr@5": null,
-      "mrr@10": null,
-      "ndcg@5": null,
-      "ndcg@10": null,
-      "hit_rate@5": null,
-      "hit_rate@10": null,
-      "eligible_queries": 0
-    }
-  },
   "rag_metrics": {
     "exact_match": 0.0,
     "token_f1": 0.068147,
     "rouge_l": 0.06001,
-    "bertscore_precision": null,
-    "bertscore_recall": null,
-    "bertscore_f1": null
+    "exact_match_extracted": 0.0,
+    "token_f1_extracted": 0.111988,
+    "answer_containment": 0.0,
+    "bertscore_precision": 0.782181,
+    "bertscore_recall": 0.822268,
+    "bertscore_f1": 0.80154
   },
   "efficiency": {
     "retrieval_latency_ms": {
