@@ -140,6 +140,36 @@ The saved artifacts include:
 
 The runner is designed for per-document retrieval scope on long-document QA datasets. It does not compute gold labels, retrieval metrics, or answer-quality metrics.
 
+### Compact Evaluation
+
+Existing RAPTOR runs can be evaluated without rerunning retrieval or answer
+generation:
+
+```bash
+python scripts/evaluate_rag_run.py \
+  --run-dir raptor_runs/qasper/qasper_retrieval_ablation_raptor \
+  --dataset-name qasper \
+  --split test \
+  --method-name raptor \
+  --output-dir "Raptor Evaluations" \
+  --ks 5 10 \
+  --generation-top-k 10
+```
+
+The script writes `metrics_summary.json`, `metrics_per_query.jsonl`,
+`leaderboard_row.json`, and `evaluation_manifest.json` under
+`Raptor Evaluations/<dataset-name>/<run-name>/`. It reads
+`retrieval/retrieval_payloads.jsonl`, `rag/qa_predictions.jsonl`, and, by
+default, `selection/qa_entries.json`. Pass `--labels-file` when chunk-level
+`gold_chunk_ids`, `silver_chunk_ids`, or `silver_chunk_groups` live elsewhere.
+
+Retrieval metrics are reported at `@5` and `@10` only when explicit chunk-level
+labels are available. The evaluator expands RAPTOR internal nodes to descendant
+leaf chunk ids before scoring and never uses `doc_id` as a fallback relevance
+label. Generation metrics evaluate the already-generated answers and record
+`generation_top_k = 10` in the summary and manifest. BERTScore is optional at
+runtime; use `--disable-bert-score` to skip model loading.
+
 ### YAML Shape
 
 The runner works best when the reference YAML contains a `raptor_run:` section. It will also try to map a few common defaults such as `split`, `max_docs`, `max_questions`, `top_k`, and chunk/token settings from non-RAPTOR YAML files, and records those assumptions in `run_manifest.json`.
